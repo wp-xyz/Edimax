@@ -26,13 +26,13 @@ object MainForm: TMainForm
       Height = 516
       Top = 0
       Width = 1049
-      PageIndex = 1
+      PageIndex = 0
       Align = alClient
       TabOrder = 0
       object PgMeasurement: TPage
         object LeftPanel: TPanel
-          Left = 9
-          Height = 221
+          Left = 4
+          Height = 508
           Top = 4
           Width = 257
           Align = alLeft
@@ -40,7 +40,7 @@ object MainForm: TMainForm
           BorderSpacing.Top = 4
           BorderSpacing.Bottom = 4
           BevelOuter = bvNone
-          ClientHeight = 221
+          ClientHeight = 508
           ClientWidth = 257
           TabOrder = 0
           object Grid: TDrawGrid
@@ -51,7 +51,7 @@ object MainForm: TMainForm
             AnchorSideBottom.Control = LeftPanel
             AnchorSideBottom.Side = asrBottom
             Left = 0
-            Height = 157
+            Height = 444
             Top = 64
             Width = 257
             Anchors = [akTop, akLeft, akRight, akBottom]
@@ -102,7 +102,7 @@ object MainForm: TMainForm
             )
           end
           object pbStatusLED: TPaintBox
-            Left = 16
+            Left = 200
             Height = 24
             Top = 8
             Width = 24
@@ -111,15 +111,15 @@ object MainForm: TMainForm
           end
         end
         object LeftSplitter: TSplitter
-          Left = 0
-          Height = 229
+          Left = 261
+          Height = 516
           Top = 0
           Width = 5
         end
         object ChartListbox1: TChartListbox
           AnchorSideLeft.Side = asrBottom
-          Left = 859
-          Height = 221
+          Left = 903
+          Height = 508
           Top = 4
           Width = 137
           Chart = Chart
@@ -132,8 +132,8 @@ object MainForm: TMainForm
           TabOrder = 2
         end
         object RightSplitter: TSplitter
-          Left = 1000
-          Height = 229
+          Left = 1044
+          Height = 516
           Top = 0
           Width = 5
           Align = alRight
@@ -141,9 +141,9 @@ object MainForm: TMainForm
         end
         object Chart: TChart
           Left = 270
-          Height = 221
+          Height = 508
           Top = 4
-          Width = 586
+          Width = 630
           AxisList = <          
             item
               Grid.Color = clSilver

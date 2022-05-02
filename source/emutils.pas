@@ -169,7 +169,10 @@ end;
     at offset  6: the word "EDIMAX"
     at offset 22: the model name
     at offset 36: the software version
-    at offset 44: the name given to the smartplug. }
+    at offset 44: the name given to the smartplug. 
+    
+  See also: 
+    https://blog.guntram.de/?p=45 }
 function Edi_FindParams(ABroadcastIP: String; var ADeviceParams: TDeviceParams): Boolean;
 type
   TDataRec = packed record
@@ -190,17 +193,18 @@ var
 const
   PAYLOAD = #$FF#$FF#$FF#$FF#$FF#$FF#$45#$44#$49#$4D#$41#$58#$00#$00#$00#$00#$00#$00#$00#$A1#$FF#$5E;
   TIMEOUT = 500;
+  PORT = '20560';
 begin
   Result := false;
   socket := TUDPBlockSocket.Create;
   try
-    //socket.EnableBroadcast(true);    // not needed
-    socket.Connect(ABroadcastIP, '20560');
+    socket.EnableBroadcast(true);    
+    socket.Connect(ABroadcastIP, PORT);
     socket.SendBuffer(@PAYLOAD[1], Length(PAYLOAD));
     if socket.LastError <> 0 then
       exit;
     socket.Listen;
-    socket.RecvBufferEx(@dataRec, Sizeof(DataRec), TIMEOUT);
+    socket.RecvBufferEx(@dataRec, SizeOf(DataRec), TIMEOUT);
     if socket.LastError <> 0 then
       exit;
     ADeviceParams.IPAddress := Format('%d.%d.%d.%d', [
