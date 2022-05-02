@@ -8,6 +8,6 @@ Greater applicability, however, can be obtained by means of a self-made and tayl
 The application __edimax__ has the following features:
 
 * measure the power consumption of electric devices as a function of time
-* display the measured data as power (W), current (A) or energy (Wh)
+* display and plot the measured data as power (W), current (A) or energy (Wh)
 * store the measured curve in a csv file
-* load previously measured curves and overlay them for comparison
+* load previously measured curves and overlay them for comparison in a plot
