@@ -1,0 +1,1148 @@
+https://de.elv.com/forum/edimax-sp-1101w-funktionsweise-installation-ansteuerung-im-lokalen-netzwerk-vom-pc-aus-3185
+
+EDIMAX SP-1101W WiFi-Steckdose, kompatibel mit Amazon Alexa
+
+--------------------------------------------------------------------------------
+Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+03.04.2014, 21:47
+
+Edimax Smartplug SP 1101W, FW 1.05
+
+Hallo,
+
+hier auf allgemeinen Wunsch, was ich rausfinden konnte:
+
+Das Smartplug wird nachstehend als "Edimax" bezeichnet, das Smartphone als 
+"Phone", das WLAN im (eigenen) Haus als "HOMEWLAN"
+
+a) Installation, Firmwareupgrade usw.
+   ----------------------------------
+
+Das Edimax spannt, während Install-Led blinkt, ein eigenes WLAN mit der SSID 
+"Ediplug.setup" auf, die IP-Adresse des Edimax in diesem WLAN ist 192.168.20.3,
+ es ist nicht geschützt.
+Das Phone nimmt, sobald die Ediplug-App gestartet wird, mit dem Edimax über 
+dieses WLAN (das überigens die am Edimax aufgedruckte MAC 80-1F-02... hat!) 
+Verbindung auf.
+
+Vom Phone wird dem Edimax dann das WLAN-Passwort für das (im Haus) zur Verfügung 
+stehende WLAN (z.B. HOMEWLAN kann aber auch jede andere SSID sein die man halt 
+daheim eingerichtet hat) mitgeteilt, gibts mehrere WLAN's, kann man auswählen 
+welches man will und wie das WLAN-Passwort dafür ist.
+
+Wichtig ist, dass der Edimax aus diesem lokalen WLAN (dem HOMEWLAN) per DHCP 
+eine IP-Adresse, ein Default-Gateway und ev. auch einen Nameserver zugewiesen 
+bekommt.
+Wenn das nicht der Fall ist, dann kann der Edimax nichts ins Internet connecten (
+und das ist für die Installation erforderlich) und nichts geht!
+
+Sollte der Edimax allenfalls eine alte Firmware haben und darum ev. nicht 
+funktionieren bzw. noch nicht installiert sein, so kann
+
+# eine aktuelle Firmware auf das Phone geladen werden
+# dann (der Edimax muss im Installationsmodus sein, sprich die rote LED muss im 
+  Sekundentakt blinken) im Browser am Phone zur Adresse "192.168.20.3\tnsetup.html" 
+  gehen, und dort kann dann der Edimax mit einer neuen Firmware beschrieben werden
+
+Ist der Edimax bereits installiert und über das lokale WLAN (HOMEWLAN) erreichbar, 
+so gibts ein Updatetool Namens "edimax_sp_1101W_FWUpgradeTool.exe"
+
+Die aktuelle Firmware gibts unter
+  http://www.edimax.com -> Support -> Homeautomation ... 
+zum Download.
+
+Nach der Einrichtung des Edimax schaltet der sein eigenes WLAN (mit der SSID 
+"Ediplug.setup") wieder ab und verbindet sich ins lokale WLAN (HOMEWLAN) und 
+zwar mit der MAC 82-1F-02... (die steht so aber nicht auf dem Edimax drauf, da 
+steht die 80-1F-02... drauf).
+Ab diesem Zeitpunkt ist der Edimax über die vom lokalen WLAN zugewiesenen 
+IP-Adresse erreichbar (ping geht z.B.).
+
+Jetzt kann mit einem einfachen IP-Scanner 
+(http://www.heise.de/download/advanced-ip-scanner.html ist free!) nach dem 
+Edimax gesucht werden, bzw. Wireshark über die MAC-Adresse (aber eher was für 
+Spezialisten).
+
+
+b) Technik und Syntax - Betrieb und Steuerung bzw. Statusabfrage des Edimax
+   ------------------------------------------------------------------------
+
+Die Kommunikation zw. Geräten aus dem lokalen LAN bzw. lokalen WLAN und dem 
+Edimax rennt direkt vom Gerät (PC oder was auch immer, der Einfachheit halber 
+rede ich hier nur vom PC) zum Edimax - da geht nichts raus ins Internet.
+
+Das Grundprinzip ist, dass der PC eine URL mit CGI-Script am Edimax mit
+Username und Passwort auf Port 10.000 via HTTP aufruft und eine XML-Steuerdatei 
+an den Edimax schickt.
+Der Edimax wiederum schickt dann eine XML-Antwortdatei zurück, die die 
+durchgeführte Aktion bestätigt bzw. den abgefragten Status bringt.
+
+Die URL am Edimax ist folgende:
+
+http://Edimax_user:Edimax_pass@Edimax-IP-Adresse:10000/smartplug.cgi
+
+
+oder klarer:
+
+http://admin:1234@10.0.0.111:10000/smartplug.cgi
+
+Die Steuerdateiinhalte (was ich bis dato finden konnte und vor allem auch 
+benötigt habe - es gibt noch wesentlich mehr) sind wie folgt:
+
+A# Edimax-Ein
+<?xml version="1.0" encoding="utf-8"?>
+<SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>ON</Device.System.Power.State></CMD></SMARTPLUG>
+
+# Antwort vom Edimax
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="setup">OK</CMD></SMARTPLUG>
+
+
+B# Edimax-Aus
+<?xml version="1.0" encoding="utf-8"?>
+<SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>OFF</Device.System.Power.State></CMD></SMARTPLUG>
+
+# Antwort vom Edimax
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="setup">OK</CMD></SMARTPLUG>
+
+
+C# Edimax-Status
+<?xml version="1.0" encoding="UTF8"?>
+<SMARTPLUG id="edimax">
+<CMD id="get"><Device.System.Power.State></Device.System.Power.State>
+</CMD></SMARTPLUG>
+
+# Antwort vom Edimax
+
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="get"><Device.System.Power.State>OFF</Device.System.Power.State></CMD></SMARTPLUG>
+
+bzw.
+
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="get"><Device.System.Power.State>ON</Device.System.Power.State></CMD></SMARTPLUG>
+
+
+c) praktische Umsetzung
+  ---------------------
+
+Da ich schon ein paar 1000 Zeilen in Autohotkey (www.autohotkey.com) geschrieben 
+habe, wollte ich die Umsetzung (die Kommunikation von meinen PC's und dem Edimax) 
+mit Autohotkey (kurz AHK) lösen. In AHK gibt es aber leider keine einfache 
+Möglichkeit zur geforderten HTTP-Kommunikation mit user/pass, auf Port 10.000, 
+mit Übergabe bzw. Rückübernahme von XML-Files usw.
+Kurzum, das ist der Grund weshalb ich die Kommunikation mit dem Edimax mittels 
+dem Kommandozeilentool CURL gelöst habe (Freeware, gibts hier: 
+http://8tut.com/how-to-install-curl-command-utility-on-windows-7-64-bit/), 
+das kann, was hier gefordert ist.
+
+Hier die Aufrufe von CURL die funktionieren:
+
+curl -d @off.xml http://admin:1234@10.0.0.111:10000/smartplug.cgi -o "output.txt"
+
+
+Erklärung zum CURL-Aufruf:
+die Steuerdatei "off.xml" wird an den Edimax auf die IP-Adresse 10.0.0.111 an 
+Port 10.000 geschickt, und das CGI-Script "smartplug.cgi" am Edimax aufgerufen 
+der User "Admin" und Passwort "1234" (das sind die Defaults am Edimax), die 
+Antwort des Edimax wird in der Datei "output.txt" gespeichert.
+
+Das wars, es ist nicht weniger aufwendig.... ;-)))
+
+Ich habe auf Basis dieser Informationen einen ersten Entwurf eines AHK-Skripts 
+geschrieben, mit dem meine Kids
+
+# den Edimax mittels klick auf ein Icon jeweils umschalten können (ist ein, 
+  dann ist nachher aus bzw. vice-versa)
+
+# weiters wird der Status des Edimax wird angezeigt (sprich Kid A schaltet 
+  aus und Kid B am anderen PC sieht ein rotes Icon und kann mit Klick wieder 
+  einschalten)
+
+# der Edimax wird nach z.B. 30 min (nach dem letzten Einschalten) automatisch 
+  ausgeschalten
+
+am Edimax hängt bei mir der Netzwerkdrucker (via Printserver am LAN) der soll 
+zu Stromsparzwecken nur dann laufen, wenn er von irgendwem in unserem Netzwerk 
+(über mehrere Stockwerke verteil) benötigt wird.
+
+Es gibt noch viel zu entdecken (die Zeitsteuerung des Edimax z.B. auch sehr 
+interessant) am Edimax und seinen Befehlen, wenn ich wieder was habe, melde ich mich.
+Schon ein recht geniales Teil der Edimax, wenn man sich ansieht was der kostet.
+
+Tja und bitte den "Roman" (den langen Text) zu entschuldigen, aber diese Materie 
+lässt sich nicht mit wesentlich weniger Text ausreichend beschreiben.
+
+Schöne Grüße aus Österreich/Vorarlberg am Bodensee
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+12.04.2014, 19:43
+
+Sehr hilfreiche Anleitung, danke.
+
+Mir ist die Netzeinrichtung des Gerätes mit der Android-App nur gelungen, wenn 
+das Gerät während Zugriff zur Cloud hatte. Danach kann man aber die Firewall so 
+konfigurieren, daß Verbindungen von der IP-Adresse des Geräts ins Internet 
+abgewiesen werden. Die grüne Netzwerklampe blinkt dann langsam, zeigt also an, 
+daß nur die lokale Verbindung funktioniert. Das Gerät läßt sich mit den 
+gezeigten CGI-Skripten dann schalten.
+
+Wer einen Linux-Server im Netz permanent laufen läßt, kann eine Zeitsteuerung 
+der Schaltvorgänge über die Crontab einrichten.
+
+Laufen mehrere Accesspoints mit gleichem Namen (SSID) im Haus, ist darauf zu 
+achten, daß das Gerät offensichtlich nicht "roamen" kann. Man bringt das Gerät 
+für die Netzwerkeinrichtung am besten in unmittelbare Nähe desjenigen 
+Accesspoints, mit dem es sich im Dauerbetrieb permanent verbinden soll. Die 
+Android-App zeigt bei der Einrichtung mehrere gleiche Accesspoint-Namen an. 
+Man paart das Gerät mit dem Accesspoint, dessen Feldstärke am stärksten ist.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+25.04.2014, 14:15
+
+Sehr sehr gute Idee und Anleitung.
+
+Ich habe eben versucht noch die Zeitsteuerung etwas zu analysieren.
+Dazu habe ich den netzwerkverkehr mitgeschnitten und mit Wireshark durchsucht. 
+Leider bin ich aus den vielen Nullen nicht schlau geworden.
+Vielleicht durchschaut von Euch jemand die Zahlenreihen.
+
+Zwei Beispiele:
+Einschaltzeit Fr. von 0:00 bis 00:01 und von 13:00 bis 13:10
+mitgeschnittenes XML:
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="setup"><SCHEDULE><Device.System.Power.Schedule.5>
+800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000FFC000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</Device.System.Power.Schedule.5></SCHEDULE></CMD></SMARTPLUG>
+
+
+Einschaltzeit Fr. von 0:00 bis 00:02 und von 13:00 bis 13:10
+mitgeschnittenes XML:
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="setup"><SCHEDULE><Device.System.Power.Schedule.5>
+C00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000FFC000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+</Device.System.Power.Schedule.5></SCHEDULE></CMD></SMARTPLUG>
+
+
+Ziel meiner Experimente wäre ein Skript durch welches die Steckdose sofort 
+einschaltet und automatisch nach 10 Minuten wieder abschaltet. Weil meine Kinder
+schalten zwar den Drucker ein wenn sie ihn brauchen, aber nicht mehr aus ;-)
+
+Wenn jemand helfen könnte würde ich mich sehr freuen.
+
+Freundlich grüßt
+Max
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+28.04.2014, 07:21
+Hallo,
+
+tja, die Nullen....
+
+a) es sind insgesamt 360 Zeichen, 15 Digits sind also 1 Stunde!!
+
+b) somit steht 1 Digit (0-F, also Hex) für insgesamt 4 Minuten
+
+nur so mal auf die Schnelle
+
+c) an Pos 196 (195 = 13:00, denn 195/15 = 13)
+
+d) an Pos 196, 197 steht ein "F", somit jeweils 4 volle Minuten
+
+e) an Pos 197 steht ein C somit 12/15 von 4 Min = 3 Minuten
+
+ergo
+
+c,d,e ergeben 13:11 (4+4+3=11)
+
+Warum an der Stelle "0" (ganz vorne im String) eine "8" steht, das wären dann ja
+8/15*4 min = 2 Min ist mir nicht klar, stimmt das mit 00:00 bis 00:01, 
+ist das nicht 00:02 ??
+
+Weitere Versuche bringen hier sicherlich Klarheit, ich kann das aktuell jedoch 
+zeitlich nicht machen.
+
+Ein Skript (Autohotkey, letztes Release) für die "Kids-Drucker-Steuerung" mit 
+genau den Funktionen - mehrere Kids können einschalten, nach 30 min ist immer 
+aus - habe ich fertig (aber nicht "schön" dokumentiert), kann ich hier 
+reinstellen oder per Email schicken.
+Habe aber noch das Problem, dass der Edimax-Smartplug immer mal wieder die 
+IP-Adresse wechselt.
+
+Beste Grüße
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+28.04.2014, 12:00
+Hallo,
+
+hier das fix fertige Autohotkey-Script, mehr oder weniger vollständig 
+dokumentiert mit allen benötigten Dateien:
+
+Smart-Plug_Toggle-Script
+
+Um das Skript laufen zu lassen, muss am PC Autohotkey installiert sein, das gibts 
+hier: AHK-Install for free.
+
+Das dem AHK-Script beiliegende CURL.EXE-File ist die 64-bit Version bzw. die 
+die auf Win7-64-bit läuft, Autohotkey sollte auf 32- und 64-bit-Systemen laufen 
+(XP und Win7).
+
+Viel Spass damit, wenn Fragen sind, einfach stellen.
+
+Schöne Grüße aus Vorarlberg am Bodensee
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+01.05.2014, 11:17
+Hallo J.M., danke für die Mühe.
+
+ich wollte das nun mal ausprobieren und bei mir kommt dann: curl.exe ist keine 
+gültige Win32 Anwendung. Ist das für ein 64bit Betriebssystem gemacht? Ich habe 
+noch ein altes 32bit XP. Vlt. habe ich auch sonst noch was falsch gemacht.
+ Ich kenne mich da zu wenig aus.
+
+Gruß
+
+Dieter
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+01.05.2014, 11:50
+Hallo J.M.,
+
+ich habe mich nochmal mit den Nullen beschäftigt.
+Das Grundprinzip ist binär.
+60Bit ergeben ein Stunde. Ein Bit pro Minute.
+Ist das Bit bei Minute 1 gesetzt ergibt das den Wert 0x8 (1000)
+Ist das Bit bei Minute 2 auch gesetzt ergibt das 0xC (1100)
+usw.
+
+Einen schönen Feiertag wünscht
+Max
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+30.05.2014, 19:19
+Hallo,
+
+ich bin ebenfalls begeistert vom Edi SmartPlug!
+
+Für die Programmierung der automatischen Schaltzeiten habe ich bislang die 
+iPhone App benutzt - komfortabler wäre allerdings eine Anwendung am PC z.B.
+im Browser.
+
+Gibt es soetwas, bzw. könnte man ein Script erstellen, welches die Ein- und 
+Ausschaltzeiten ändert?
+
+Schöne Grüße, Martin
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+31.05.2014, 09:33
+Hallo,
+
+ich denke, dass das gehen wird. Man muss sich halt mit der erforderlichen Syntax 
+auseinandersetzen, aber allzu schwierig ist die nicht.
+
+Weiters braucht man halt eine Programmiersprache mit der man das umsetzt, ich 
+für mich würde das mit Autohotkey machen, siehe meine obigen Beispiele und 
+Informationen.
+
+Damit kann man die div. Aktionen und Einstellungen des Smartplug komfortabel 
+vom PC steuern, aber wie gesagt, das muss man zuerst noch schreiben/programmieren.
+
+Mit dem Browser kann so was auch gehen, wenn man es schafft die CGI-Scripts, die 
+der Smartplug will, auszuführen - da kenn ich mich aber aktuell nicht aus bzw. 
+habe ich mich damit nicht beschäftigt.
+
+Beste Grüsse
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.08.2014, 20:38
+Hallo TechnikInteresiert,
+die Idee mit dem cURL ist super. Danke
+Ich habe eine Anwendung geschrieben (XAMPP, cURL), welche auf einem kleinen 
+XP-Server läuft und abhängig von der aktuellen Leistung meiner PV-Anlage 
+(solar-log) die Steckdose für die Waschmaschine steuert.
+Wer an Doku interessiert ist, bitte melden.
+Franzec
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+22.08.2014, 15:56
+Ich würde die Steuerung über curl gerne über das Internet ( nicht lokales Netzwerk) 
+benutzen, geht das?
+Hintergrund: ich steuere über die smartplugs eine Bewässerungsanlage und möchte 
+den Schedule je nach Vorhersage anpassen.
+Sg Martin
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+22.08.2014, 16:18
+Hallo,
+
+über "das Internet", da gibts es 2 Dinge
+
+a) über den Edimax-Server, den auch die App nutzt
+
+oder
+
+b) über einen Router der im Internet hängt und hinter dem sich der Smartplug befindet
+
+Bei a) wirds sicherlich ziemlich kompliziert, dazu müsste man das proprietäre 
+Protokoll, das die App (am Smartphone) verwendet, analysieren.
+
+Die Zugriffsvariante b) ist weniger aufwendig, einfach auf dem Router einen 
+Port (zB 10000) mit einer Weiterleitung auf die IP des Smartplug einrichten 
+und schon kann CURL über das Internet auf die IP des Routers zeigen (bzw. 
+dessen DNS-Namen), wird dort auf den Smartplug weitergeleitet und das wars.
+Klar, die IP des Routers kann/wird wechseln, dann hilft aber dynDNS (klar der 
+Router muss das können) weiter. Mit entsprechendem Netzwerk-Know-How lässt sich
+das sicherlich einrichten.
+
+Schöne Grüsse aus Vorarlberg/Österreich am Bodensee
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+22.08.2014, 17:21
+Hallo,
+danke für die rasche und ausführliche Antwort!
+
+Ich hatte gehofft, dass das Protokoll über den Edimax Server identisch ist- dann
+wärs einfach...
+Dyndns scheidet leider aus, da ich auf smartplug Seite eine mobile Datenverbindung 
+ohne öffentliche IP Adresse benutzen muss. Gerade die Edimax Server Funktionalität 
+löst dieses Problem.
+Ist das Protokoll eigentlich veröffentlicht oder nur durch reverse Engineering 
+bekannt?
+Schöne Grüße, Martin
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+23.08.2014, 18:22
+Hallo,
+
+mir ist keine Veröffentlichung bekannt.
+
+Das "Reverse Engineering" beschränkt sich in meinem Fall darauf, dass ich mir 
+mit Wireshark und einem Hub (damit ich in Wireshark was sehe) die Kommunikation 
+angesehen habe.
+
+Schöne Grüsse
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+07.09.2014, 21:13
+Habe Dein Script in eine Heimsteuerung (Net-PC unter Win XP mit XAMPP)für meine
+Photovoltaik-Anlage eingebaut. Wenn die PV-Anlage (solar-log-Datenlogger) über 
+15 min mehr als 1 kW erzeugt, schalte ich die Steckdose (Waschmaschine) ein.
+
+Läuft super!:)
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+09.09.2014, 16:03
+Bei mir handelt es sich um die SP-2101W, danke für die Anleitung und die Scripte, 
+die Seite hat mir sehr weitergeholfen, die Dose ohne Cloud erst mal abzufragen. 
+Script zeig den richtigen Einschaltzustand und den Ausschaltzustand über die 
+Icons, jetzt fehlt noch, die Daten für den Energieverbrauch abzufragen, gibt es 
+da Kenntnisse über die Abfragebefehle?
+Gruß
+BEManni
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+12.09.2014, 15:58
+Hallo,
+
+nein da gibts lt. meinen Information nichts, selber mit Wireshark raussniffen.
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+13.09.2014, 15:37
+Hallo,
+
+auf die Schnelle: Wenn man dem SP2101W folgendes XML Dokument schickt:
+
+<?xml version="1.0" encoding="UTF8"?>
+<SMARTPLUG id="edimax">
+<CMD id="get">
+<NOW_POWER></NOW_POWER>
+</CMD>
+</SMARTPLUG>
+
+Dann antwortet er z. B. wie folgt:
+
+<?xml version="1.0" encoding="UTF8"?>
+<SMARTPLUG id="edimax">
+<CMD id="get">
+<NOW_POWER>
+<Device.System.Power.LastToggleTime>20140913140522</Device.System.Power.LastToggleTime>
+<Device.System.Power.NowCurrent>0.0833</Device.System.Power.NowCurrent>
+<Device.System.Power.NowPower>6.29</Device.System.Power.NowPower>
+<Device.System.Power.NowEnergy.Day>0.013</Device.System.Power.NowEnergy.Day>
+<Device.System.Power.NowEnergy.Week>0.013</Device.System.Power.NowEnergy.Week>
+<Device.System.Power.NowEnergy.Month>0.013</Device.System.Power.NowEnergy.Month>
+</NOW_POWER>
+</CMD>
+</SMARTPLUG>
+
+Wobei "LastToggleTime" die letzte Schaltzeit des SmartPlugs ist und dann die 
+Werte für Strom, Leistung und die restlichen drei für den Verbrauch 
+(Tag, Woche u. Monat) geliefert werden.
+
+Ist man nur an einem einzelnen Wert interessiert, kann man bspw. folgendes 
+an den SmartPlug senden:
+
+<?xml version="1.0" encoding="UTF8"?>
+<SMARTPLUG id="edimax">
+<CMD id="get">
+<NOW_POWER>
+<Device.System.Power.NowCurrent/>
+</NOW_POWER>
+</CMD>
+</SMARTPLUG>
+
+Ich hoffe, das hilft fürs Erste weiter
+RJS
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+22.09.2014, 09:43
+Danke an R. J. Staufenbiel für die Hilfe, es wäre sinnvoll, einen neuen Beitrag 
+mit Überschrift SP-2101W einzurichten, könnte ich ja machen und die 
+Scripte / Infos reinkopieren, aber da würde ich mich ja evtl mit fremden Federn 
+schmücken und das möchte ich nicht. Ich werde vorerst mal den kompletten Beitrag 
+reinkopieren, das kann ja wieder geändert werden
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+23.09.2014, 00:19
+Hallo BEManni,
+wenn Du Zeit und Lust hast, kannst Du meinen Beitrag gerne kopieren oder woanders 
+zusammenfassen.
+Aus meiner Sicht ist das, was ich in Foren äußere "Public Domain".
+
+Gruß RJS
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+23.09.2014, 00:27
+Hallo alle (Programmier-)Interessierten!
+
+Unter Link zum GitHub Projektverzeichnis 
+
+  (https://github.com/contrequarte/SmartPlugSP2101W)
+
+habe ich ein kleines Programmierprojekt (C#) begonnen, das ein Steuern des 
+Smartplug auch vom (Windows-)PC aus ermöglichen soll. Unter anderem sind bereits 
+eine Methode zum Abfragen der Zeitpläne und setzen derselben enthalten. Da im 
+GitHub die Sourcen vorhanden sind sollte eine Umstellung auf eigene Anforderungen 
+oder in eine bessere/schönere/"tollere" Programmiersprache der eigenen Wahl 
+einfach möglich sein.
+
+Beste Grüße
+
+RJS
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.10.2014, 11:49
+Bin auch sehr an einer Steuerung über PC interessiert. Vielleicht auch an einer 
+Java Version, da diesen plattformübergreifend wäre!
+
+Leider verstehe ich noch nicht ganz die Übermittlung via Hotkey und curl oder 
+beides!?
+
+Wie erhalte ich denn die IP Adresse der Steckdose?
+
+Dann könnte ich ja auch einfach ein Formular basteln, die entsprechenden Daten 
+reinpacken und das an das CGI Skript schicken, oder?
+
+Grüße
+Kalenderfamily
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.10.2014, 17:44
+Hallo,
+
+die IP kriegt man am einfachsten und schnellsten mit einem simplen IP-Scanner 
+(hier von Heise.de for free: Adv.IP-Scanner), einfach starten und bei einer der 
+gefundenen IP-Adressen steht dann rechts daneben "EDIMAX".
+
+Mit Hotkey hat das nichts zu tun. Ich verwende Autohotkey (das ist eine simple 
+Interpretersprache), aber es geht jede (Hoch-) Programmiersprache am PC.
+
+Wenn man CURL (als externes Tool) nutzen will, dann muss man das halt mit den 
+geeigneten Parametern aufrufen - z.B. aus Autohotkey oder C# oder von wo aus 
+auch immer.
+
+Zu Testzwecken kann man CURL auch händisch aufrufen und die div. Parameter 
+ausprobieren.
+
+Mit CGI habe ich "nichts am Hut" aber wenn man damit programmieren kann, dann 
+geht das sicher - kann denn CGI ein EXE-Programm wie CURL.EXE mit Parametern 
+aufrufen ??
+
+Schöne Grüße aus Österreich
+
+J.M.
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.10.2014, 22:53
+Guten Abend, das mit der ip verwundert mich. Die Dose müsste doch auch im Wlan 
+angemeldet sein, aber ich kann kein Gerät Edimax finden...
+
+Zurück zu Autohitkey bzw. Curl, cgi. Ist es richtig, dass es sich um ein entweder, 
+oder handelt? Entweder mit curl oder mit Hotkey? In dem zip hier ist nämlich 
+alles, das hat mich verwundert.
+
+Zu dem cgi: das cgi skript wird in der dose durchgeführt, korrekt? Wenn ich 
+richtig liege, kann ich also per formular entsprechend einfach die variablen 
+übermitteln, die ich benötige. Nur müsste man vorher die dosen "azslesen" 
+(ip adresse und name)
+
+Grüße
+Kalenderfamily
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.10.2014, 23:05
+Über get
+
+<A HREF="http://admin:1234@10.0.0.111:10000/smartplug.cgi?> CGI Sample</A>
+
+Oder post
+
+<form action="http://admin:1234@10.0.0.111:10000/smartplug.cgi " method="post">
+<input type="hidden" name="return" value="http://www.ihreadresse.de/danke.html">
+<input type="hidden" name="delimiter" value=": ">
+<input type="hidden" name="subject" value="Feedback-Formular">
+<!-- hier beliebige eigene Felder -->
+<input type="submit"><input type="reset">
+</form>
+
+Nur die variablen müssen stimmen
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+26.10.2014, 22:50
+Hallo kalenderfamily,
+
+um die im Netzwerk befindlichen SmartPlugs zu finden, sendet die Android App ein 
+UDP Datagram als Broadcast ins Netz. Der Payload ("erschnüffelt" mit Wireshark) 
+der Nachricht sieht wie folgt aus:
+
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x45, 0x44, 0x49, 0x4d, 0x41, 0x58, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xa1, 0xff, 0x5e
+
+Daraufhin melden sich die angesprochenen Smartplugs mit einer 186 Bytes langen 
+Nachricht (auch als UDP Datagram) zurück. In dieser Nachricht steht jeweils 
+"\0 terminated"
+
+    ab Offset 6 das Wort "EDIMAX" 
+    ab Offset 22 die Modellbezeichnung 
+    ab Offset 36 die Softwareversion 
+    ab Offset 44 der Name, der dem Smartplug gegeben wurde
+
+Unter DeviceFinder.cs findest Du eine C# Klasse, mit der ich die im Netzwerk 
+vorhandenen Smartplugs ermittle. Eine Portierung in JAVA sollte eigentlich 
+problemlos möglich sein. Generell bietet Microsoft aber auch einen Download zu 
+einer kostenfreien Entwicklungsumgebung für C# an.
+
+Ich hoffe es hilft ein bisschen weiter
+RJS
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+20.11.2014, 10:19
+Hallo,
+
+habe eine Edimax Sp1101W.
+mit Autohotkey schalten geht zwar gut wenn der PC an ist, habe jetzt aber eine 
+Möglichkeit gefunden die Steckdose automatisiert und komfortabel zu schalten.
+Vorraussetzung ein Server mit PHP und das PHP Script aus dem Ip-Phone-Forum.de 
+hier zu finden http://www.ip-phone-forum.de/showthread.php?t=273150
+ich hab den Apache Server
+apache-1.3.41-modssl_php-5.4.3_sqlite-2.1 auf meiner Fritzbox 7170 installiert.
+mir mit Hilfe von @JL3 aus dem Ip-Phone-Forum ein Php-Script gebastet.
+Pfade und Paremeter anpassen!!
+
+<?php
+$user="admin";
+$password="1234";
+$ip="192.168.178.27:10000";
+$Pfad="/var/media/ftp/Generic-Flash-Disk-01/apache-1341/htdocs";
+
+$an=$Pfad.'/curl -d @'.$Pfad.'/on.xml http://'.$user.':'.$password.'@'.$ip.'/smartplug.cgi';
+$aus=$Pfad.'/curl -d @'.$Pfad.'/off.xml http://'.$user.':'.$password.'@'.$ip.'/smartplug.cgi';
+$state=$Pfad.'/curl -d @'.$Pfad.'/powerstate.xml http://'.$user.':'.$password.'@'.$ip.'/smartplug.cgi -o '.$Pfad.'/output.txt';
+
+$edipowerstate="F";
+$output=shell_exec($state);
+$xml=file_get_contents($Pfad.'/output.txt');
+
+if (strpos($xml,"ON")) {
+  $edipowerstate="1";
+}
+
+if (strpos($xml,"OFF")) {
+  $edipowerstate="0";
+}
+
+$Status="E";
+
+if ($edipowerstate==$_GET) {
+  $Status="N";
+}
+
+if ($_GET=="1" and $edipowerstate=="0") {
+  $output=shell_exec($an);
+  $Status="1";
+}
+
+if ($_GET=="0" and $edipowerstate=="1") {
+  $output=shell_exec($aus);
+  $Status="0";
+}
+
+$edipowerstate="F";
+$output=shell_exec($state);
+$xml=file_get_contents($Pfad.'/output.txt');
+
+if (strpos($xml,"ON")) {
+  $edipowerstate="1";
+}
+
+if (strpos($xml,"OFF")) {
+  $edipowerstate="0";
+}
+
+if ($edipowerstate!=$Status and $Status!="N") {
+  $Status="E";
+}
+echo $Status;
+?>
+
+dies kann ich dann im Browser mit meineServerIP/edi.php?schalter=1 für ein oder 
+0 für aus, aufrufen aber noch besser mit der smarthomeautoproui und 
+smarthomeautopro vom Ip-phone-forum
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+12.06.2015, 10:43
+Guten Tag
+Vielen Dank für die tolle Beschreibung, dieser Plug ist bemerkenswert.
+Habe Eure Anleitung wie beschrieben befolgt, leider kommt bei mir im output.txt 
+immer:
+
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>401 - Unauthorized</title>
+</head>
+<body>
+<h1></h1>
+</body>
+</html>
+
+Ich habe eine on.bat:
+curl -d @on.xml http://admin:1234@192.168.0.86:10000/smartplug.cgi -o "output.txt"
+
+und on.xml:
+<?xml version="1.0" encoding="iso-8859-1"?><SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>ON</Device.System.Power.State></CMD></SMARTPLUG>
+
+Beim Encoding hatte ich auch schon "utf-8"
+
+Ich bin leider nicht so der Programmierer, also eher neu in dem Gebiet. 
+Könnt Ihr mir helfen.
+Gruss
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+12.06.2015, 10:48
+Hi Frido,
+
+ich vermute mal, "401 - Unauthorized" bedeutet, dass die bei curl angegeben 
+Zugangsdaten "admin:1234" nicht für deinen Stecker passen.
+
+Gruß
+Max
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+16.06.2015, 09:51
+Hallo Max
+Dies habe ich auch vermutet.
+Also gab ich dem Stecker einen eigenen Namen mit Passwort, leider kommt dann
+die selbe Meldung zurück!
+
+--------------------------------------------------------------------------------
+
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+07.11.2015, 20:04
+Hallo Leute,
+
+Eure Beiträge haben mir sehr geholfen für meine "Home Automatisierung" um 
+EDIMAX SP2101 Geräte einzubinden.;);)
+
+Da ich Java bevorzuge habe ich eine Support Klasse geschrieben die Devices auf 
+Grund der MAC Adresse (die ja am Gerät steht und für mich das daran angeschlossene 
+Gerät ideentifiziert) findet (die aktuelle IP) und diverse Methoden ON/Off 
+Leistung auslesen/Name/Version/....
+
+Wenn jemand so was benötigt bin ich gerne bereit die sourcen zur verfügung zu 
+stellen (ein Open Source Projekt lohnt dazu nicht)
+
+danke nochmals für die Vorarbeit
+
+Getestet auf Linux 4.x mit SP2101W V1.03
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+19.11.2015, 06:28
+@bronco2222
+Die Java Klasse würde mich mal interessieren, die würde ich gern in meine 
+SmartHome Software mit einbinden -> http://agent4788.github.io/SHC_Framework/
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+03.04.2016, 11:07
+@bronco2222
+
+Hallo bronco2222,
+da ich seit kurzem stolzer Besitzer dieser Schaltuhr bin und würde ich mir die 
+Java-Klasse gerne ansehen, um rauszufinden,
+was alles möglich ist.
+
+Java wäre dann nämlich auch die bevorzugte Lösung meiner Wahl.:D
+
+Viele Grüße
+firak
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+0
+0
+02.05.2016, 20:52
+Hallo zusammen
+
+Ich habe ebenfalls ein Edimax SP-1101W mit Firmware Version: 1.11.
+
+Leider bekomme ich vom Edimax keinerlei Rückmeldung.
+
+Ich versuche via Tasker (Android) die "einschalten.xml" Inhalt: 
+
+<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>ON</Device.System.Power.State></CMD></SMARTPLUG> 
+
+zu übergeben. Der Edimax interessiert sich dafür leider überhaupt nicht. Über 
+die Edimax App funktioniert die Steuerung.
+Welche Firmware habt ihr im Einsatz?
+Wo könnte mein Fehler liegen?
+
+Gruss und Danke vorab
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+16.05.2016, 11:32
+Hallo
+
+weiss vielleicht jemand, wie man die Plugs über Homematic ansteuern kann, ich 
+habe schon gelesen, dass es geht, aber keiner kann mir zeigen/sagen wie
+
+Vielen Dank , lG Tom
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+19.08.2016, 14:52
+@TechnikInteressiert
+
+Können Sie Ihren Autohotkey Script mit den erforderlichen Dateien nochmal online 
+stellen? Ich würde dieses auch sehr gerne nutzen. Vielen Dank im voraus.
+
+Mit freundlichen Grüßen
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+29.11.2016, 23:35
+Hallo TechnikInteressiert,
+
+Danke für das hacken der Dose. Geht bei mir super!!!!
+
+Hallo Anbei ein kleines Skript zum ansteuern in Python 3.x
+Die XML Dateien beinhalten die zuvor vorgestellten strings.
+Unter Windows musste ich "requests" erst nachinstallieren unter linux raspbian 
+jessy war es dabei.
+
+import requests
+from tkinter import *
+
+def dose(ON_OFF):
+if ON_OFF == "ON":
+XML_STRING = open("D:/python/rcntrl/PLUG_ON.XML").read()
+if ON_OFF == "OFF":
+XML_STRING = open("D:/python/rcntrl/PLUG_OFF.XML").read()
+
+r = requests.post('http://192.168.2.134:10000/smartplug.cgi',data=XML_STRING, auth=('admin', '1234'))
+
+print (r.status_code )
+print (r.content)
+
+class App:
+def __init__(self, master):
+frame = Frame(master)
+frame.pack()
+self.button = Button(frame,
+text="ON", fg="red",
+command=lambda:dose("ON"))
+self.button.pack(side=LEFT)
+self.slogan = Button(frame,
+text="OFF",
+command=lambda:dose("OFF"))
+self.slogan.pack(side=LEFT)
+
+root = Tk()
+app = App(root)
+root.mainloop()
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+21.03.2017, 15:54
+Hallo TechnikInteressiert,
+in deinem Beitrag vom 28.04.2014, 12:00 Uhr hast du eine Anleitung unter 
+"Smart-Plug_Toggle-Script" verlinkt.
+Leider ist diese Verlinkung nicht mehr verfügbar.
+Könntest du bitte diese Anleitung nochmals hochladen.
+
+Danke und Gruss
+Güny
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+29.07.2017, 17:55
+Hey,
+
+um mit der SP-2101 auch mit der neuen Firmware (ab 2.08) weiterhin webabfragen 
+durchführen zu können ist es nötig die Curlanfragen von auth basic auf auth 
+digest umzustellen.
+
+Ich habe mir dafür ein PHP script zurecht gebastelt. Hier meine ersten 
+funktionierenden Ergebnisse:
+
+<?php
+error_reporting(E_ALL); 
+
+ini_set( 'display_errors','1');
+
+$url = "http://192.168.130.124:10000/smartplug.cgi";
+$username = "admin";
+$password = "passwort";
+
+$state = '<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="get"><Device.System.Power.State></Device.System.Power.State></CMD></SMARTPLUG>'; 
+$off = '<?xml version="1.0" encoding="utf-8"?><SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>OFF</Device.System.Power.State></CMD></SMARTPLUG>';
+$on = '<?xml version="1.0" encoding="utf-8"?><SMARTPLUG id="edimax"><CMD id="setup"><Device.System.Power.State>ON</Device.System.Power.State></CMD></SMARTPLUG>';
+$power = '<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="get"><NOW_POWER></NOW_POWER></CMD></SMARTPLUG>';
+$power_current = '<?xml version="1.0" encoding="UTF8"?><SMARTPLUG id="edimax"><CMD id="get"><NOW_POWER><Device.System.Power.NowCurrent/></NOW_POWER></CMD></SMARTPLUG>';
+$input_xml = $power_current;
+$input_xml = $power;
+//$input_xml = $on;
+
+$options = array(
+CURLOPT_URL            => $url,
+CURLOPT_HEADER         => true,    
+CURLOPT_VERBOSE        => true,
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_FOLLOWLOCATION => true,
+CURLOPT_SSL_VERIFYPEER => false,    // https
+CURLOPT_USERPWD        => $username . ":" . $password,
+CURLOPT_HTTPAUTH       => CURLAUTH_DIGEST,
+CURLOPT_POST           => true,
+CURLOPT_POSTFIELDS     => "xmlRequest=" . $input_xml
+);
+
+$ch = curl_init();
+curl_setopt_array( $ch, $options );
+
+try {
+  $raw_response  = curl_exec( $ch );
+
+  // validate CURL status
+  if(curl_errno($ch))
+    throw new Exception(curl_error($ch), 500);
+} catch(Exception $ex) {
+  if ($ch != null) curl_close($ch);
+  throw new Exception($ex);
+}
+
+if ($ch != null) curl_close($ch);
+
+echo "Antwort: <pre>" . $raw_response."</pre>"; 
+?>
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+28.10.2017, 14:34
+Hallo.
+kann man die Werte der 2101 auch zum schalten einer anderen 2101 verwenden? 
+Quasi PV Überwachung mit ansteuerung div. verbraucher?
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+29.10.2017, 12:02
+Hallo SzlaMa,
+
+ich versteh die Frage nicht.
+
+Ich habe mich mit der Edimax SP-1101W beschäftigt, ob die SP-2101W identisch ist 
+bzw. mit den identischen Befehlen funktioniert, kann ich nicht sagen.
+
+Das muss man, wenn man es wissen will,
+a) ausprobieren, mit CURL kein grosses Problem
+b) selber rausfinden, Wireshark ist hier das Mittel der Wahl (Google hilft weiter)
+
+viel Spass damit
+
+J.
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+08.12.2017, 13:52
+Hallo,
+ich habe ein Problem mit dem anbinden der WLAN Steckdosen von EDIMAX SP-1101W.
+Benutzt habe ich den Code von https://gist.github.com/wendlers/a5fc0bf06bbe656c7291, 
+in den Kommentaren habe ich schon gelesen ,dass es eine Authänderung mit der 
+neuen Firmware gab. Leider bekomme ich aber mit dem angepassten Code ebenfalls 
+keine Verbindung hin.
+
+Aktueller Status:
+
+python smartplug.py -H 192.168.43.228 -l admin -p 1234 -s ON
+2017-12-07 17:28:32,729 - DEBUG - Starting new HTTP connection (1): 192.168.43.228
+2017-12-07 17:28:32,764 - DEBUG - http://192.168.43.228:10000 "POST /smartplug.cgi HTTP/1.1" 401 333
+2017-12-07 17:28:32,799 - DEBUG - http://192.168.43.228:10000 "POST /smartplug.cgi HTTP/1.1" 401 333
+Failed to communicate with SmartPlug
+
+--------------------------------------------------------------------------------
+
+Aw: Edimax SP 1101W, Funktionsweise, Installation, Ansteuerung im lokalen Netzwerk vom PC aus
+
+07.01.2018, 19:52
+Hallo!
+
+Haben einen Stromanbieter aWattar, der Stundenpreise verrechnet.
+Gerne möchte ich jetzt einen Kontakt schalten der meine Autoladestation in der 
+Nacht beim niedrigsten Strompreis freischaltet. Die Strompreise können mittels 
+API abgerufen werden.
+hat da jemand erfahrung?
+Gruß Josef
+

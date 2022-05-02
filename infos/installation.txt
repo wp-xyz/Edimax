@@ -1,0 +1,36 @@
+--------------------------------------------------------------------------------
+                              SETTING UP OF THE PLUG
+--------------------------------------------------------------------------------
+* Install the EdiPlug app on your Android smartphone. Problem: the app is not
+  found in the PlayStore any more - search for a third-party download site,
+  e.g. https://apkgk.com/en/com.edimax.smartplugin (works at the time of this
+  writing). You must enable installation from unknown sources for this.
+* Connect the plug to power, wait until the bottom red LED is flashing once
+  per second
+* Go to the wifi settings of your smartphone and connect to the SSID 
+  "Ediplug.Setup". Note this is an open net, no password required.
+* Open EdiPlug app
+* Select "+" to add the new plug
+* Select your normal wifi net from the displayed list of available wifi nets, 
+  enter your wifi password.
+* The plug connects to your normal wifi net and shuts down the "Ediplug.Setup"
+  net.
+* Reconnect your smartphone to your normal wifi net (if not done automatically).
+* If you want to change the username and password for access you can do this
+  in the smartphone app.
+* Note: the default username is "admin" and the default password is "1234".
+
+--------------------------------------------------------------------------------
+                               EDIMAX APPLICATION
+--------------------------------------------------------------------------------
+* Run the edimax application
+* Click "Setup". If you use DHCP and the default settings there is no need to 
+  change anything. Otherwise enter the correct values. Close "setup".
+* To test whether the plug is working click "Info" to see the plug name, IP
+  address etc. Click "On" to switch the the plug on, and "Off" to switch if off.
+* For a measurement, select the measured quantity, power or current, in the 
+  "Measure" box and press "Start". Press "Stop" to end the measurement. Click
+  "Save" to save the data to a csv file. Load the csv file in Excel/Calc or
+  in my DataLogger application.
+  
+
