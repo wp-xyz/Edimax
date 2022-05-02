@@ -14,7 +14,6 @@ type
   { TDetectIPForm }
 
   TDetectIPForm = class(TForm)
-    BtnDetect: TButton;
     ButtonPanel: TButtonPanel;
     EdNetworkAddress: TEdit;
     EdSubnetMask: TEdit;
@@ -23,7 +22,7 @@ type
     LblNetworkIPAddress: TLabel;
     LblSubnetMask: TLabel;
     MainPanel: TPanel;
-    procedure BtnDetectClick(Sender: TObject);
+    procedure DetectButtonClick(Sender: TObject);
     procedure OKButtonClick(Sender: TObject);
   private
     function ValidData(out AMsg: String; out AControl: TWinControl): Boolean;
@@ -46,7 +45,7 @@ uses
   synaip,
   emUtils;
 
-procedure TDetectIPForm.BtnDetectClick(Sender: TObject);
+procedure TDetectIPForm.DetectButtonClick(Sender: TObject);
 var
   msg: String;
   C: TWinControl;
