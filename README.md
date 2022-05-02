@@ -24,12 +24,12 @@ configuration".
 
 ## Compilation of the edimax application
 
-* This application is distributed as Pascal source code only. Use Lazarus v2.0+ and the Free Pascal Compiler (FPC) v3.0+ to create a binary. The source does not depend on external third-party packages (well, it does depend on the external _synapse_ and _industrial_ packages but the files needed are contained in the repository).
+* This application is distributed as Pascal source code only. Use Lazarus v2.0+ and the Free Pascal Compiler (FPC) v3.0+ to create a binary. The source does not depend on external third-party packages (well, it does depend on the external _synapse_ and _industrial_ packages but the files needed are contained in the repository; there is nothing to be installed).
 * The application definitely works on Windows and Linux/gtk2. Other widgetsets may work as well, but were not tested at the time of this writing.
 
 ## Setup of the edimax application
 
-* When _edi_ starts for the first time, its _Setup network_ dialog opens in which you must specifiy the IP address of the Edimax plug. Click on "Detect" to send a broadcast in order to find out its IP address. 
+* When _edimax_ starts for the first time, its _Setup network_ dialog opens in which you must specifiy the IP address of the Edimax plug. Click on "Detect" to send a broadcast in order to find out its IP address. 
 
 ![Screenshot](screenshots/setupform.png)
 
