@@ -1,9 +1,11 @@
-object SetupIPForm: TSetupIPForm
+object SetupForm: TSetupForm
   Left = 387
   Height = 276
   Top = 166
   Width = 491
   AutoSize = True
+  BorderIcons = []
+  BorderStyle = bsDialog
   Caption = 'Setup network'
   ClientHeight = 276
   ClientWidth = 491
@@ -23,7 +25,7 @@ object SetupIPForm: TSetupIPForm
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 0
+    TabOrder = 1
     ShowButtons = [pbOK, pbCancel]
   end
   object MainPanel: TPanel
@@ -41,8 +43,8 @@ object SetupIPForm: TSetupIPForm
     ClientHeight = 204
     ClientWidth = 459
     Constraints.MinWidth = 300
-    TabOrder = 1
-    object GroupBox1: TGroupBox
+    TabOrder = 0
+    object GbIPAddress: TGroupBox
       AnchorSideLeft.Control = MainPanel
       AnchorSideTop.Control = MainPanel
       AnchorSideRight.Control = MainPanel
@@ -58,8 +60,8 @@ object SetupIPForm: TSetupIPForm
       ClientWidth = 455
       TabOrder = 0
       object EdIPAddress: TEdit
-        AnchorSideLeft.Control = GroupBox1
-        AnchorSideTop.Control = GroupBox1
+        AnchorSideLeft.Control = GbIPAddress
+        AnchorSideTop.Control = GbIPAddress
         AnchorSideRight.Control = BtnDetectIP
         Left = 16
         Height = 23
@@ -76,7 +78,7 @@ object SetupIPForm: TSetupIPForm
       object BtnDetectIP: TButton
         AnchorSideTop.Control = EdIPAddress
         AnchorSideTop.Side = asrCenter
-        AnchorSideRight.Control = GroupBox1
+        AnchorSideRight.Control = GbIPAddress
         AnchorSideRight.Side = asrBottom
         Left = 378
         Height = 25
@@ -91,10 +93,10 @@ object SetupIPForm: TSetupIPForm
       end
     end
     object GbAuthentication: TGroupBox
-      AnchorSideLeft.Control = GroupBox1
-      AnchorSideTop.Control = GroupBox1
+      AnchorSideLeft.Control = GbIPAddress
+      AnchorSideTop.Control = GbIPAddress
       AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = GroupBox1
+      AnchorSideRight.Control = GbIPAddress
       AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 109
@@ -136,7 +138,7 @@ object SetupIPForm: TSetupIPForm
         BorderSpacing.Right = 16
         Enabled = False
         MaxLength = 15
-        TabOrder = 0
+        TabOrder = 1
       end
       object LblPassword: TLabel
         AnchorSideTop.Control = EdPassword
@@ -168,7 +170,7 @@ object SetupIPForm: TSetupIPForm
         BorderSpacing.Bottom = 12
         Enabled = False
         MaxLength = 15
-        TabOrder = 1
+        TabOrder = 2
       end
       object CbDefaultAuth: TCheckBox
         AnchorSideLeft.Control = GbAuthentication
@@ -182,7 +184,7 @@ object SetupIPForm: TSetupIPForm
         Checked = True
         OnChange = CbDefaultAuthChange
         State = cbChecked
-        TabOrder = 2
+        TabOrder = 0
       end
     end
   end

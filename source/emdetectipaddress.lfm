@@ -4,6 +4,7 @@ object DetectIPForm: TDetectIPForm
   Top = 131
   Width = 320
   AutoSize = True
+  BorderStyle = bsDialog
   Caption = 'Detect IP Address'
   ClientHeight = 240
   ClientWidth = 320
@@ -17,13 +18,13 @@ object DetectIPForm: TDetectIPForm
     OKButton.DefaultCaption = True
     OKButton.OnClick = OKButtonClick
     HelpButton.Name = 'HelpButton'
-    HelpButton.Caption = 'Detect...'
+    HelpButton.Caption = 'Detect'
     HelpButton.OnClick = DetectButtonClick
     CloseButton.Name = 'CloseButton'
     CloseButton.DefaultCaption = True
     CancelButton.Name = 'CancelButton'
     CancelButton.DefaultCaption = True
-    TabOrder = 0
+    TabOrder = 1
     ShowButtons = [pbOK, pbCancel, pbHelp]
     ShowGlyphs = [pbOK, pbCancel, pbClose]
   end
@@ -39,84 +40,68 @@ object DetectIPForm: TDetectIPForm
     BorderSpacing.Right = 16
     BorderSpacing.Bottom = 16
     BevelOuter = bvNone
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
     ClientHeight = 168
     ClientWidth = 288
-    TabOrder = 1
+    TabOrder = 0
     object LblNetworkIPAddress: TLabel
-      AnchorSideLeft.Control = MainPanel
-      AnchorSideTop.Control = EdNetworkAddress
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 15
-      Top = 4
+      Height = 23
+      Top = 0
       Width = 88
+      Alignment = taRightJustify
       Caption = 'Network address'
       ParentColor = False
     end
-    object LblSubnetMask: TLabel
-      AnchorSideTop.Control = EdSubnetMask
-      AnchorSideTop.Side = asrCenter
-      AnchorSideRight.Control = LblNetworkIPAddress
-      AnchorSideRight.Side = asrBottom
-      Left = 20
-      Height = 15
-      Top = 33
-      Width = 68
-      Anchors = [akTop, akRight]
-      Caption = 'Subnet mask'
-      ParentColor = False
-    end
     object EdNetworkAddress: TEdit
-      AnchorSideLeft.Control = LblNetworkIPAddress
       AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = MainPanel
-      AnchorSideRight.Control = MainPanel
       AnchorSideRight.Side = asrBottom
       Left = 104
       Height = 23
       Top = 0
-      Width = 184
-      Anchors = [akTop, akLeft, akRight]
+      Width = 150
       BorderSpacing.Left = 16
       Constraints.MinWidth = 150
       TabOrder = 0
     end
+    object LblSubnetMask: TLabel
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 29
+      Width = 88
+      Alignment = taRightJustify
+      Caption = 'Subnet mask'
+      ParentColor = False
+    end
     object EdSubnetMask: TEdit
-      AnchorSideLeft.Control = EdNetworkAddress
-      AnchorSideTop.Control = EdNetworkAddress
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = EdNetworkAddress
       AnchorSideRight.Side = asrBottom
       Left = 104
       Height = 23
       Top = 29
-      Width = 184
-      Anchors = [akTop, akLeft, akRight]
+      Width = 150
       BorderSpacing.Top = 6
       TabOrder = 1
     end
     object LblIPAddress: TLabel
-      AnchorSideTop.Control = EdSubnetMask
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = LblNetworkIPAddress
       AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 15
       Top = 68
       Width = 88
-      Anchors = [akTop, akRight]
+      Alignment = taRightJustify
       BorderSpacing.Top = 16
       Caption = 'IP address found'
       ParentColor = False
     end
     object InfoIPAddress: TLabel
-      AnchorSideLeft.Control = EdNetworkAddress
-      AnchorSideTop.Control = EdSubnetMask
-      AnchorSideTop.Side = asrBottom
       Left = 104
       Height = 15
       Top = 68
-      Width = 72
+      Width = 150
       BorderSpacing.Top = 16
       Caption = 'InfoIPAddress'
       ParentColor = False

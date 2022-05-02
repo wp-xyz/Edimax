@@ -1,4 +1,4 @@
-unit emSetupIPAddress;
+unit emSetup;
 
 {$mode objfpc}{$H+}
 
@@ -10,16 +10,16 @@ uses
 
 type
 
-  { TSetupIPForm }
+  { TSetupForm }
 
-  TSetupIPForm = class(TForm)
+  TSetupForm = class(TForm)
     BtnDetectIP: TButton;
     ButtonPanel1: TButtonPanel;
     CbDefaultAuth: TCheckBox;
     EdIPAddress: TEdit;
     EdPassword: TEdit;
     EdUserName: TEdit;
-    GroupBox1: TGroupBox;
+    GbIPAddress: TGroupBox;
     GbAuthentication: TGroupBox;
     LblPassword: TLabel;
     LblUserName: TLabel;
@@ -41,7 +41,7 @@ type
   end;
 
 var
-  SetupIPForm: TSetupIPForm;
+  SetupForm: TSetupForm;
 
 implementation
 
@@ -51,9 +51,9 @@ uses
   synaip,
   emDetectIPAddress;
 
-{ TSetupIPForm }
+{ TSetupForm }
 
-procedure TSetupIPForm.BtnDetectIPClick(Sender: TObject);
+procedure TSetupForm.BtnDetectIPClick(Sender: TObject);
 var
   F: TDetectIPForm;
 begin
@@ -72,7 +72,7 @@ begin
 end;
 
 
-procedure TSetupIPForm.CbDefaultAuthChange(Sender: TObject);
+procedure TSetupForm.CbDefaultAuthChange(Sender: TObject);
 begin
   EdUserName.Enabled := not CbDefaultAuth.Checked;
   EdPassword.Enabled := not CbDefaultAuth.Checked;
@@ -87,7 +87,7 @@ begin
 end;
 
 
-procedure TSetupIPForm.GuiToParams(var ANetworkParams: TNetworkParams;
+procedure TSetupForm.GuiToParams(var ANetworkParams: TNetworkParams;
   var AAuthParams: TAuthenticationParams; var ADeviceParams: TDeviceParams);
 begin
   ANetworkParams := FNetworkParams;
@@ -108,7 +108,7 @@ begin
 end;
 
 
-procedure TSetupIPForm.OKButtonClick(Sender: TObject);
+procedure TSetupForm.OKButtonClick(Sender: TObject);
 var
   msg: String;
   C: TWinControl;
@@ -122,7 +122,7 @@ begin
 end;
 
 
-procedure TSetupIPForm.ParamsToGui(const ANetworkParams: TNetworkParams;
+procedure TSetupForm.ParamsToGui(const ANetworkParams: TNetworkParams;
   const AAuthParams: TAuthenticationParams; const ADeviceParams: TDeviceParams);
 begin
   FNetworkParams := ANetworkParams;
@@ -142,7 +142,7 @@ begin
 end;
 
 
-function TSetupIPForm.ValidData(out AMsg: String; out AControl: TWinControl): Boolean;
+function TSetupForm.ValidData(out AMsg: String; out AControl: TWinControl): Boolean;
 begin
   Result := false;
 

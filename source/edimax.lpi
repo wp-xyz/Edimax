@@ -65,12 +65,12 @@
         <UnitName Value="emXmlUtils"/>
       </Unit4>
       <Unit5>
-        <Filename Value="emsetupipaddress.pas"/>
+        <Filename Value="emsetup.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="SetupIPForm"/>
+        <ComponentName Value="SetupForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="emSetupIPAddress"/>
+        <UnitName Value="emSetup"/>
       </Unit5>
       <Unit6>
         <Filename Value="emdetectipaddress.pas"/>

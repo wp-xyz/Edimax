@@ -146,7 +146,7 @@ uses
   StrUtils, Math, IniFiles, LclIntf,
   laz2_DOM, laz2_XMLRead,
   TAChartUtils,
-  emUtils, emSetupIPAddress, emXmlUtils;
+  emUtils, emSetup, emXmlUtils;
 
 const
   SERIES_COLORS: array[0..6] of TColor = (
@@ -316,9 +316,9 @@ end;
 
 procedure TMainForm.acSetupExecute(Sender: TObject);
 var
-  F: TSetupIPForm;
+  F: TSetupForm;
 begin
-  F := TSetupIPForm.Create(nil);
+  F := TSetupForm.Create(nil);
   try
     F.ParamsToGui(NetworkParams, AuthParams, DeviceParams);
     if F.ShowModal = mrOK then
