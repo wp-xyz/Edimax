@@ -118,7 +118,7 @@ object MainForm: TMainForm
         end
         object ChartListbox1: TChartListbox
           AnchorSideLeft.Side = asrBottom
-          Left = 903
+          Left = 908
           Height = 508
           Top = 4
           Width = 137
@@ -132,7 +132,7 @@ object MainForm: TMainForm
           TabOrder = 2
         end
         object RightSplitter: TSplitter
-          Left = 1044
+          Left = 900
           Height = 516
           Top = 0
           Width = 5
@@ -186,6 +186,7 @@ object MainForm: TMainForm
           object LineSeries: TLineSeries
             Title = 'Measurement'
             LinePen.Color = clBlue
+            LinePen.Width = 3
             Source = ChartSource
           end
         end

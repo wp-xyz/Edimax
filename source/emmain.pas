@@ -439,8 +439,8 @@ begin
     FData[0, n].Values[mqEnergy] := accumEnergy + values[mqPower] * (currTime - prevTime) * 24;  // Wh
   end;
 
-  // Update visual controls
-  if FMeasQuant = mqCurrent then  // Current display
+  // Update power/current LED display 
+  if FMeasQuant = mqCurrent then 
     UpdateValueDisplay(values[mqCurrent], false)
   else
     UpdateValueDisplay(values[mqPower], true);
@@ -455,7 +455,7 @@ begin
   begin
     if Length(FData[0]) + Grid.FixedRows > Grid.RowCount then
       Grid.RowCount := Length(FData[0]) + Grid.FixedRows;
-    Grid.Invalidate;
+    Grid.Row := Grid.RowCount-1;
   end;
 end;
 
