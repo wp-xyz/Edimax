@@ -13,17 +13,17 @@ object MainForm: TMainForm
   LCLVersion = '2.3.0.0'
   object Panel2: TPanel
     Left = 0
-    Height = 516
-    Top = 50
+    Height = 486
+    Top = 80
     Width = 1049
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 516
+    ClientHeight = 486
     ClientWidth = 1049
     TabOrder = 0
     object Notebook: TNotebook
       Left = 0
-      Height = 516
+      Height = 486
       Top = 0
       Width = 1049
       PageIndex = 0
@@ -32,7 +32,7 @@ object MainForm: TMainForm
       object PgMeasurement: TPage
         object LeftPanel: TPanel
           Left = 4
-          Height = 508
+          Height = 478
           Top = 4
           Width = 257
           Align = alLeft
@@ -40,7 +40,7 @@ object MainForm: TMainForm
           BorderSpacing.Top = 4
           BorderSpacing.Bottom = 4
           BevelOuter = bvNone
-          ClientHeight = 508
+          ClientHeight = 478
           ClientWidth = 257
           TabOrder = 0
           object Grid: TDrawGrid
@@ -51,7 +51,7 @@ object MainForm: TMainForm
             AnchorSideBottom.Control = LeftPanel
             AnchorSideBottom.Side = asrBottom
             Left = 0
-            Height = 444
+            Height = 414
             Top = 64
             Width = 257
             Anchors = [akTop, akLeft, akRight, akBottom]
@@ -112,14 +112,14 @@ object MainForm: TMainForm
         end
         object LeftSplitter: TSplitter
           Left = 261
-          Height = 516
+          Height = 486
           Top = 0
           Width = 5
         end
         object ChartListbox1: TChartListbox
           AnchorSideLeft.Side = asrBottom
           Left = 908
-          Height = 508
+          Height = 478
           Top = 4
           Width = 137
           Chart = Chart
@@ -133,7 +133,7 @@ object MainForm: TMainForm
         end
         object RightSplitter: TSplitter
           Left = 900
-          Height = 516
+          Height = 486
           Top = 0
           Width = 5
           Align = alRight
@@ -141,7 +141,7 @@ object MainForm: TMainForm
         end
         object Chart: TChart
           Left = 270
-          Height = 508
+          Height = 478
           Top = 4
           Width = 630
           AxisList = <          
@@ -712,7 +712,7 @@ object MainForm: TMainForm
   end
   object CoolBar: TCoolBar
     Left = 0
-    Height = 50
+    Height = 80
     Top = 0
     Width = 1049
     AutoSize = True
@@ -722,7 +722,6 @@ object MainForm: TMainForm
       end    
       item
         Control = InternalToolbar
-        Visible = False
       end>
     GrabStyle = gsGripper
     object StandardToolBar: TToolBar
@@ -744,13 +743,12 @@ object MainForm: TMainForm
       ShowCaptions = True
       TabOrder = 0
       Transparent = True
-      OnResize = StandardToolBarResize
       object TbSetup: TToolButton
         Left = 1
         Top = 0
         Action = acSetup
       end
-      object ToolButton1: TToolButton
+      object TbInfo: TToolButton
         Left = 48
         Top = 0
         Action = acInfo
@@ -759,30 +757,30 @@ object MainForm: TMainForm
         Left = 86
         Height = 40
         Top = 0
-        Caption = 'ToolButton3'
+        Caption = '-'
         Style = tbsDivider
       end
-      object ToolButton10: TToolButton
+      object TbStart: TToolButton
         Left = 91
         Top = 0
         Action = acStart
       end
-      object ToolButton11: TToolButton
+      object TbStop: TToolButton
         Left = 127
         Top = 0
         Action = acStop
       end
-      object ToolButton12: TToolButton
+      object TbWatts: TToolButton
         Left = 168
         Top = 0
         Action = acWatts
       end
-      object ToolButton13: TToolButton
+      object TbAmps: TToolButton
         Left = 204
         Top = 0
         Action = acAmperes
       end
-      object ToolButton14: TToolButton
+      object TbWh: TToolButton
         Left = 240
         Top = 0
         Action = acWattHours
@@ -798,20 +796,20 @@ object MainForm: TMainForm
         Left = 276
         Height = 40
         Top = 0
-        Caption = 'ToolButton16'
+        Caption = '-'
         Style = tbsDivider
       end
-      object ToolButton17: TToolButton
+      object TbSave: TToolButton
         Left = 324
         Top = 0
         Action = acSave
       end
-      object ToolButton18: TToolButton
+      object TbLoad: TToolButton
         Left = 281
         Top = 0
         Action = acLoad
       end
-      object tbExpand: TToolButton
+      object TbExpand: TToolButton
         Left = 370
         Top = 0
         Action = acExpand
@@ -820,17 +818,17 @@ object MainForm: TMainForm
         Left = 365
         Height = 40
         Top = 0
-        Caption = 'ToolButton20'
+        Caption = '-'
         Style = tbsDivider
       end
       object ToolButton21: TToolButton
         Left = 406
         Height = 40
         Top = 0
-        Caption = 'ToolButton21'
+        Caption = '-'
         Style = tbsDivider
       end
-      object ToolButton22: TToolButton
+      object TbExit: TToolButton
         Left = 411
         Top = 0
         Action = acExit
@@ -839,60 +837,61 @@ object MainForm: TMainForm
     object InternalToolbar: TToolBar
       AnchorSideLeft.Control = CoolBar
       AnchorSideTop.Control = CoolBar
-      Left = 2
+      Left = 24
       Height = 22
-      Top = 2
+      Top = 53
       Width = 235
       Align = alNone
       AutoSize = True
+      BorderSpacing.Left = 22
+      BorderSpacing.Top = 51
       Caption = 'InternalToolbar'
       EdgeBorders = []
       ShowCaptions = True
       TabOrder = 1
       Transparent = True
-      Visible = False
-      object ToolButton2: TToolButton
-        Left = 195
+      object TbStatus: TToolButton
+        Left = 55
         Top = 0
         Action = acStatus
       end
-      object ToolButton4: TToolButton
-        Left = 6
+      object TbON: TToolButton
+        Left = 1
         Top = 0
         Action = acOn
       end
-      object ToolButton5: TToolButton
-        Left = 30
+      object TbOFF: TToolButton
+        Left = 25
         Top = 0
         Action = acOff
       end
-      object ToolButton6: TToolButton
-        Left = 60
+      object TbPower: TToolButton
+        Left = 100
         Top = 0
         Action = acPower
       end
-      object ToolButton7: TToolButton
-        Left = 101
+      object TbCurrent: TToolButton
+        Left = 141
         Top = 0
         Action = acCurrent
       end
-      object ToolButton8: TToolButton
-        Left = 149
+      object TbHistory: TToolButton
+        Left = 189
         Top = 0
         Action = acHistory
       end
       object ToolButton9: TToolButton
-        Left = 55
+        Left = 50
         Height = 22
         Top = 0
-        Caption = 'ToolButton9'
+        Caption = '-'
         Style = tbsDivider
       end
       object ToolButton19: TToolButton
-        Left = 1
+        Left = 95
         Height = 22
         Top = 0
-        Caption = 'ToolButton19'
+        Caption = '-'
         Style = tbsDivider
       end
     end

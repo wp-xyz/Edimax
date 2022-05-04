@@ -61,28 +61,28 @@ type
     Timer: TTimer;
     ChartSource: TUserDefinedChartSource;
     TbSetup: TToolButton;
-    ToolButton1: TToolButton;
-    ToolButton10: TToolButton;
-    ToolButton11: TToolButton;
-    ToolButton12: TToolButton;
-    ToolButton13: TToolButton;
-    ToolButton14: TToolButton;
+    TbInfo: TToolButton;
+    TbStart: TToolButton;
+    TbStop: TToolButton;
+    TbWatts: TToolButton;
+    TbAmps: TToolButton;
+    TbWh: TToolButton;
     ToolButton15: TToolButton;
     ToolButton16: TToolButton;
-    ToolButton17: TToolButton;
-    ToolButton18: TToolButton;
-    tbExpand: TToolButton;
+    TbSave: TToolButton;
+    TbLoad: TToolButton;
+    TbExpand: TToolButton;
     ToolButton19: TToolButton;
-    ToolButton2: TToolButton;
+    TbStatus: TToolButton;
     ToolButton20: TToolButton;
     ToolButton21: TToolButton;
-    ToolButton22: TToolButton;
+    TbExit: TToolButton;
     ToolButton3: TToolButton;
-    ToolButton4: TToolButton;
-    ToolButton5: TToolButton;
-    ToolButton6: TToolButton;
-    ToolButton7: TToolButton;
-    ToolButton8: TToolButton;
+    TbON: TToolButton;
+    TbOFF: TToolButton;
+    TbPower: TToolButton;
+    TbCurrent: TToolButton;
+    TbHistory: TToolButton;
     ToolButton9: TToolButton;
     XMLTree: TTreeView;
     procedure acEdiExecute(Sender: TObject);
@@ -105,8 +105,6 @@ type
       {%H-}AState: TGridDrawState);
     procedure pbStatusLEDPaint(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
-    procedure StandardToolBarResize(Sender: TObject);
-
   private
     { private declarations }
     FData: array of TDataArray;
@@ -500,7 +498,7 @@ begin
   Grid.AnchorSideTop.Side := asrBottom;
   Grid.RowHeights[0] := 2*Grid.DefaultRowHeight;
   
-//  tbExpand.Align := alRight;
+//  TbExpand.Align := alRight;
 
   // FData[0] and FChartSources[0] are reserved for measurement data
   SetLength(FData, 1);
@@ -517,6 +515,8 @@ begin
       MessageDlg('Edimax plug is not found', mtError, [mbOK], 0);
   end;
 
+  SetDebugView(false);
+  
   UpdateCaption;
   UpdateStatusDisplay;
 end;
@@ -524,6 +524,7 @@ end;
 procedure TMainForm.FormShow(Sender: TObject);
 begin
   LeftPanel.Constraints.MinWidth := FLEDNumber.Left + FLEDNumber.Width;
+  StandardToolbar.Constraints.MinWidth := TbExit.Left + TbExit.Width + 8;
 end;
 
 procedure TMainForm.GridDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -763,7 +764,8 @@ end;
 
 procedure TMainForm.SetDebugView(const AEnable: Boolean);
 begin
-  Coolbar.Bands[1].Visible := AEnable;
+  if Coolbar.Bands.Count > 1 then
+    Coolbar.Bands[1].Visible := AEnable;
   if AEnable then
   begin
     Notebook.PageIndex := 1;  // PgDebug
@@ -781,11 +783,6 @@ end;
 procedure TMainForm.TimerTimer(Sender: TObject);
 begin
   ExecuteMeasurement;
-end;
-
-procedure TMainForm.StandardToolBarResize(Sender: TObject);
-begin
-  //tbExpand.Left := StandardToolBar.ClientWidth - tbExpand.Width;
 end;
 
 
