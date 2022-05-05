@@ -25,7 +25,7 @@ configuration".
 ## Compilation of the edimax application
 
 * This application is distributed as Pascal source code only. Use Lazarus v2.0+ and the Free Pascal Compiler (FPC) v3.0+ to create a binary. The source does not depend on external third-party packages (well, it does depend on the external _synapse_ and _industrial_ packages but the files needed are contained in the repository; there is nothing to be installed).
-* The application definitely works on Windows, macOS (10.14) and Linux/gtk2. Other widgetsets may work as well, but were not tested at the time of this writing.
+* The application definitely works on Windows, macOS (10.14) and Linux (gtk2, qt4, gtk3 with limitations). Other widgetsets may work as well, but were not tested at the time of this writing.
 
 ## Setup of the edimax application
 
