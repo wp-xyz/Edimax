@@ -24,6 +24,10 @@ const
 
   ONE_DAY = 1.0;
   ONE_HOUR = ONE_DAY / 24;
+  ONE_MINUTE = ONE_DAY / (24 * 60);
+  
+  BACKUP_INTERVAL = 1 * ONE_MINUTE;  // minutes
+  BACKUP_FILENAME = 'measurement.csv';
   
   TAB = #9;
 

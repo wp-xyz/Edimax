@@ -25,6 +25,7 @@ function XML_GetEdiValue(ARootNode: TDOMNode; ANodeName: String): String;
 function XML_IsValidEdiXML(ARootNode: TDOMNode): Boolean;
 
 function CreateIni: TCustomIniFile;
+function GetBackupDir: String;
 function GetBroadcastAddr(const ANetworkAddr, ASubnetMask: String): String;
 function MacAddrToString(AMacAddr: TMacAddress): String;
 
@@ -459,7 +460,14 @@ begin
   cfgDir := GetAppConfigDir(false);
   if not DirectoryExists(cfgDir) then
     CreateDir(cfgDir);
-  result := TMemIniFile.Create(GetAppConfigFile(false));
+  result := TMemIniFile.Create(cfgDir + 'edimax.cfg');
+end;
+
+function GetBackupDir: String;
+begin
+  Result := GetAppConfigDir(false);
+  if not DirectoryExists(Result) then
+    CreateDir(Result);
 end;
 
 function GetBroadcastAddr(const ANetworkAddr, ASubnetMask: String): String;

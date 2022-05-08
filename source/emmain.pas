@@ -115,6 +115,8 @@ type
     FMeasQuant: TMeasQuant;
     FGridDataIdx: Integer;
     FLedNumber: TLedNumber;
+    FBackupFileName: String;
+    FNextBackupTime: TDateTime;
     procedure ExecuteMeasurement;
     procedure LoadData(const AFileName: String);
     procedure SaveDataAs(const AFileName: String);
@@ -364,6 +366,7 @@ begin
     exit;
   end;
   FStartTime := Now();
+  FNextBackupTime := FStartTime + BACKUP_INTERVAL;
   ExecuteMeasurement;
   
   Timer.Enabled := true;
@@ -405,7 +408,7 @@ end;
 
 procedure TMainForm.ExecuteMeasurement;
 var
-  currTime, prevTime: TDateTime;
+  timeNow, currTime, prevTime: TDateTime;
   values: TMeasValues;
   accumEnergy: Double;
   n: Integer;
@@ -418,7 +421,8 @@ begin
     exit;
 
   // Add new value to data array
-  currTime := Now - FStartTime;
+  timeNow := Now();
+  currTime := timeNow - FStartTime;
   n := Length(FData[0]);
   SetLength(FData[0], n+1);
   FData[0, n].Time := currTime;
@@ -435,6 +439,11 @@ begin
       accumEnergy := FData[0, n-1].Values[mqEnergy];
     end;
     FData[0, n].Values[mqEnergy] := accumEnergy + values[mqPower] * (currTime - prevTime) * 24;  // Wh
+    if timeNow > FNextBackupTime then
+    begin
+      SaveDataAs(FBackupFileName);
+      FNextBackupTime := timeNow + BACKUP_INTERVAL;
+    end;
   end;
 
   // Update power/current LED display 
@@ -471,6 +480,7 @@ begin
   PointFormatSettings := DefaultFormatSettings;
   PointFormatSettings.DecimalSeparator := '.';
   FTimeUnits := tuMinutes;
+  FBackupFileName := GetBackupDir + BACKUP_FILENAME;
 
   FLedNumber := TLedNumber.Create(self);
   with FLedNumber do 
