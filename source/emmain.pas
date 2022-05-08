@@ -5,12 +5,10 @@ unit emMain;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  ComCtrls, ExtCtrls, Grids, Buttons, ActnList, 
-  SynEdit, SynHighlighterXML,
-  LedNumber, 
-  TAGraph, TASeries, TACustomSource, TASources, TAIntervalSources, TAChartListbox, 
-  emGlobal;
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
+  ExtCtrls, Grids, Buttons, ActnList, StdCtrls, Spin, SynEdit,
+  SynHighlighterXML, LedNumber, TAGraph, TASeries, TACustomSource, TASources,
+  TAIntervalSources, TAChartListbox, TAChartLiveView, emGlobal;
 
 type
 
@@ -36,13 +34,18 @@ type
     acWatts: TAction;
     ActionList: TActionList;
     Chart: TChart;
-    ChartListbox1: TChartListbox;
+    ChartListbox: TChartListbox;
+    CbLiveViewActive: TCheckBox;
+    ChartLiveView: TChartLiveView;
     CoolBar: TCoolBar;
     DateTimeIntervalChartSource: TDateTimeIntervalChartSource;
     Grid: TDrawGrid;
+    Label1: TLabel;
     Notebook: TNotebook;
+    ChartPanel: TPanel;
     PgMeasurement: TPage;
     PgDebug: TPage;
+    seLiveMinutes: TSpinEdit;
     StandardToolBar: TToolBar;
     InternalToolbar: TToolBar;
     ToolbarImages: TImageList;
@@ -51,7 +54,7 @@ type
     OpenDialog: TOpenDialog;
     LeftPanel: TPanel;
     pbStatusLED: TPaintBox;
-    Panel2: TPanel;
+    MainPanel: TPanel;
     SaveDialog: TSaveDialog;
     Splitter1: TSplitter;
     RightSplitter: TSplitter;
@@ -95,7 +98,8 @@ type
     procedure acSetupExecute(Sender: TObject);
     procedure acStartExecute(Sender: TObject);
     procedure acStopExecute(Sender: TObject);
-    procedure ChartListbox1ItemClick({%H-}ASender: TObject; AIndex: Integer);
+    procedure CbLiveViewActiveChange(Sender: TObject);
+    procedure ChartListboxItemClick({%H-}ASender: TObject; AIndex: Integer);
     procedure ChartSourceGetChartDataItem(ASource: TUserDefinedChartSource;
       AIndex: Integer; var AItem: TChartDataItem);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
@@ -104,6 +108,7 @@ type
     procedure GridDrawCell(Sender: TObject; ACol, ARow: Integer; ARect: TRect;
       {%H-}AState: TGridDrawState);
     procedure pbStatusLEDPaint(Sender: TObject);
+    procedure seLiveMinutesChange(Sender: TObject);
     procedure TimerTimer(Sender: TObject);
   private
     { private declarations }
@@ -383,11 +388,19 @@ begin
 end;
 
 
-procedure TMainForm.ChartListbox1ItemClick(ASender: TObject; AIndex: Integer);
+procedure TMainForm.CbLiveViewActiveChange(Sender: TObject);
+begin
+  ChartLiveView.Active := CbLiveViewActive.Checked;
+  if not ChartLiveView.Active then
+    Chart.ZoomFull;
+end;
+
+
+procedure TMainForm.ChartListboxItemClick(ASender: TObject; AIndex: Integer);
 var
   ser: TLineSeries;
 begin
-  ser := TLineSeries(ChartListbox1.Series[AIndex]);
+  ser := TLineSeries(ChartListbox.Series[AIndex]);
   if ser = nil then
     exit;
   FGridDataIdx := ser.Source.Tag;
@@ -466,6 +479,7 @@ begin
   end;
 end;
 
+
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   if CanClose then
@@ -474,6 +488,7 @@ begin
     except
     end;
 end;
+
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
@@ -529,13 +544,18 @@ begin
   
   UpdateCaption;
   UpdateStatusDisplay;
+              
+  ChartLiveView.ViewportSize := seLiveMinutes.Value * ONE_MINUTE;
+  ChartLiveView.Active := CbLiveViewActive.Checked;
 end;
+
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
   LeftPanel.Constraints.MinWidth := FLEDNumber.Left + FLEDNumber.Width;
   StandardToolbar.Constraints.MinWidth := TbExit.Left + TbExit.Width + 8;
 end;
+
 
 procedure TMainForm.GridDrawCell(Sender: TObject; aCol, aRow: Integer;
   aRect: TRect; aState: TGridDrawState);
@@ -564,6 +584,7 @@ begin
     TextRect(ARect, ARect.Left, ARect.Top, s, ts);
   end;
 end;
+
 
 procedure TMainForm.LoadData(const AFileName: String);
 const
@@ -714,6 +735,7 @@ begin
   LED_Images.DrawForPPI(pbStatusLED.Canvas, 0, 0, idx, LED_Images.Width, ppi, f);
 end;
 
+
 procedure TMainForm.ReadFromIni;
 var
   ini: TCustomIniFile;
@@ -769,6 +791,12 @@ begin
   finally
     CloseFile(F);
   end;
+end;
+
+
+procedure TMainForm.seLiveMinutesChange(Sender: TObject);
+begin
+  ChartLiveView.ViewportSize := seLiveMinutes.Value * ONE_MINUTE;
 end;
 
 
