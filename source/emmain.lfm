@@ -1339,6 +1339,7 @@ object MainForm: TMainForm
     }
   end
   object ToolbarImages: TImageList
+    Scaled = True
     Left = 460
     Top = 252
     Bitmap = {
