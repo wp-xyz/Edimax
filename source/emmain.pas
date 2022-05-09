@@ -5,10 +5,19 @@ unit emMain;
 interface
 
 uses
+  // FCL, LazUtils, LCL
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Grids, Buttons, ActnList, StdCtrls, Spin, SynEdit,
-  SynHighlighterXML, LedNumber, TAGraph, TASeries, TACustomSource, TASources,
-  TAIntervalSources, TAChartListbox, TAChartLiveView, emGlobal;
+  ExtCtrls, Grids, Buttons, ActnList, StdCtrls, Spin, 
+  // SynEdit
+  SynEdit, SynHighlighterXML, 
+  // third-party
+  LedNumber, 
+  // TAChart
+  TATools,   // Needed for built-in chart toolset
+  TAGraph, TASeries, TACustomSource, TASources, TAIntervalSources, 
+  TAChartListbox, TAChartLiveView, 
+  // project
+  emGlobal;
 
 type
 
