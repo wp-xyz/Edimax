@@ -17,7 +17,7 @@ uses
   TAGraph, TASeries, TACustomSource, TASources, TAIntervalSources, 
   TAChartListbox, TAChartLiveView, 
   // project
-  emGlobal;
+  emGlobal, TALegend, TACustomSeries;
 
 type
 
@@ -108,6 +108,9 @@ type
     procedure acStartExecute(Sender: TObject);
     procedure acStopExecute(Sender: TObject);
     procedure CbLiveViewActiveChange(Sender: TObject);
+    procedure ChartListboxAddSeries(ASender: TChartListbox; 
+      ASeries: TCustomChartSeries; AItems: TChartLegendItems; var ASkip: Boolean
+      );
     procedure ChartListboxItemClick({%H-}ASender: TObject; AIndex: Integer);
     procedure ChartSourceGetChartDataItem(ASource: TUserDefinedChartSource;
       AIndex: Integer; var AItem: TChartDataItem);
@@ -280,14 +283,22 @@ end;
 
 
 procedure TMainForm.acLoadExecute(Sender: TObject);
+var
+  i: Integer;
+  fn: String;
 begin
   OpenDialog.InitialDir := ExtractFilePath(SaveDialog.FileName);
   OpenDialog.FileName := '';
   if OpenDialog.Execute then
   begin
-    if not SameText(ExtractFileExt(OpenDialog.FileName), OpenDialog.DefaultExt) then
-      OpenDialog.FileName := ChangeFileExt(OpenDialog.FileName, OpenDialog.DefaultExt);
-    LoadData(OpenDialog.FileName);
+    for i := 0 to OpenDialog.Files.Count-1 do
+    begin
+      fn := OpenDialog.Files[i];
+      if not SameText(ExtractFileExt(fn), OpenDialog.DefaultExt) then
+        fn := ChangeFileExt(fn, OpenDialog.DefaultExt);
+      LoadData(fn);
+    end;
+    CbLiveViewActive.Checked := false;
   end;
 end;
 
@@ -402,6 +413,13 @@ begin
   ChartLiveView.Active := CbLiveViewActive.Checked;
   if not ChartLiveView.Active then
     Chart.ZoomFull;
+end;
+
+
+procedure TMainForm.ChartListboxAddSeries(ASender: TChartListbox; 
+  ASeries: TCustomChartSeries; AItems: TChartLegendItems; var ASkip: Boolean);
+begin
+  ASkip := (ASeries = LineSeries) and LineSeries.IsEmpty;
 end;
 
 
@@ -787,12 +805,12 @@ begin
   try
     // add "#" for compatibility with gnuplot
     WriteLn(F, '#Measurement data');
-    WriteLn(F, '#', DateTimeToStr(FStartTime));
+    WriteLn(F, '#', FormatDateTime('yyyy-mm-dd hh:nn:ss', FStartTime));
     WriteLn(F);
     Write(F, '#', 'Time (days)', TAB, 'Power (W)', TAB, 'Current (A)');
     WriteLn(F);
     for i:=0 to High(FData[0]) do begin
-      sT := Format('%.6f', [FData[0, i].Time], PointFormatSettings);
+      sT := Format('%.8f', [FData[0, i].Time], PointFormatSettings);
       sP := Format('%.6f', [FData[0, i].Values[mqPower]], PointFormatSettings);
       sI := Format('%.6f', [FData[0, i].Values[mqCurrent]], PointFormatSettings);
       WriteLn(F, sT, TAB, sP, TAB, sI);
@@ -869,6 +887,14 @@ end;
 
 procedure TMainForm.UpdateTimeAxis(ALastTime: TDateTime);
 begin
+  if (cbLiveViewActive.Checked) then
+  begin
+    if seLiveMinutes.Value > 60 then
+      FTimeUnits := tuHours
+    else
+      FTimeUnits := tuMinutes
+  end 
+  else
   if ALastTime > ONE_DAY then
     FTimeUnits := tuDays
   else 
