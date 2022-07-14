@@ -10,7 +10,6 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   OnShow = FormShow
   ShowHint = True
-  LCLVersion = '2.3.0.0'
   object MainPanel: TPanel
     Left = 0
     Height = 486

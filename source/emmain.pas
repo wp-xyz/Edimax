@@ -109,8 +109,7 @@ type
     procedure acStopExecute(Sender: TObject);
     procedure CbLiveViewActiveChange(Sender: TObject);
     procedure ChartListboxAddSeries(ASender: TChartListbox; 
-      ASeries: TCustomChartSeries; AItems: TChartLegendItems; var ASkip: Boolean
-      );
+      ASeries: TCustomChartSeries; AItems: TChartLegendItems; var ASkip: Boolean);
     procedure ChartListboxItemClick({%H-}ASender: TObject; AIndex: Integer);
     procedure ChartSourceGetChartDataItem(ASource: TUserDefinedChartSource;
       AIndex: Integer; var AItem: TChartDataItem);
@@ -135,6 +134,7 @@ type
     FBackupFileName: String;
     FNextBackupTime: TDateTime;
     procedure ExecuteMeasurement;
+    function IsMeasuring: Boolean;
     procedure LoadData(const AFileName: String);
     procedure SaveDataAs(const AFileName: String);
     procedure SetDebugView(const AEnable: Boolean);
@@ -291,6 +291,7 @@ begin
   OpenDialog.FileName := '';
   if OpenDialog.Execute then
   begin
+    CbLiveViewActive.Checked := false;
     for i := 0 to OpenDialog.Files.Count-1 do
     begin
       fn := OpenDialog.Files[i];
@@ -298,7 +299,6 @@ begin
         fn := ChangeFileExt(fn, OpenDialog.DefaultExt);
       LoadData(fn);
     end;
-    CbLiveViewActive.Checked := false;
   end;
 end;
 
@@ -610,6 +610,12 @@ begin
     InflateRect(ARect, -constCellPadding, -constCellPadding);
     TextRect(ARect, ARect.Left, ARect.Top, s, ts);
   end;
+end;
+
+
+function TMainForm.IsMeasuring: Boolean;
+begin
+  Result := acStop.Enabled;
 end;
 
 
