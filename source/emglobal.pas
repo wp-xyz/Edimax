@@ -73,7 +73,10 @@ type
     Values: TMeasValues;  // units: Watts, Amperes, Wh
   end;
 
-  TDataArray = array of TData;
+  TDataArray = record
+    Data: array of TData;
+    TotalEnergy: Double;
+  end;
 
   TMacAddress = packed array[0..5] of byte;
 

@@ -50,6 +50,8 @@ type
     DateTimeIntervalChartSource: TDateTimeIntervalChartSource;
     Grid: TDrawGrid;
     Label1: TLabel;
+    lblMeasTitle: TLabel;
+    lblTotalEnergy: TLabel;
     Notebook: TNotebook;
     ChartPanel: TPanel;
     PgMeasurement: TPage;
@@ -143,6 +145,7 @@ type
     procedure UpdateDeviceParams(IP: String = '');
     procedure UpdateStatusDisplay;
     procedure UpdateTimeAxis(ALastTime: TDateTime);
+    procedure UpdateTotalEnergyDisplay;
     procedure UpdateValueAxis;
     procedure UpdateValueDisplay(AValue: Double; IsPower: Boolean);
 
@@ -366,8 +369,9 @@ begin
   
   SetDebugView(false);
   Application.ProcessMessages;
-  
-  SetLength(FData[0], 0);
+
+  FData[0].TotalEnergy := 0.0;
+  SetLength(FData[0].Data, 0);
   FChartSources[0].PointsNumber := 0;
   FChartSources[0].Reset;
   FGridDataIdx := 0;
@@ -431,7 +435,8 @@ begin
   if ser = nil then
     exit;
   FGridDataIdx := ser.Source.Tag;
-  Grid.RowCount := Length(FData[FGridDataIdx]) + Grid.FixedRows;
+  Grid.RowCount := Length(FData[FGridDataIdx].Data) + Grid.FixedRows;
+  UpdateTotalEnergyDisplay;
 end;
 
 
@@ -441,8 +446,8 @@ var
   ChartSourceIndex: Integer;
 begin
   ChartSourceIndex := ASource.Tag;
-  AItem.X := FData[ChartSourceIndex, AIndex].Time;
-  AItem.Y := FData[ChartSourceIndex, AIndex].Values[FMeasQuant];
+  AItem.X := FData[ChartSourceIndex].Data[AIndex].Time;
+  AItem.Y := FData[ChartSourceIndex].Data[AIndex].Values[FMeasQuant];
 end;
 
 
@@ -463,10 +468,10 @@ begin
   // Add new value to data array
   timeNow := Now();
   currTime := timeNow - FStartTime;
-  n := Length(FData[0]);
-  SetLength(FData[0], n+1);
-  FData[0, n].Time := currTime;
-  FData[0, n].Values := values;
+  n := Length(FData[0].Data);
+  SetLength(FData[0].Data, n+1);
+  FData[0].Data[n].Time := currTime;
+  FData[0].Data[n].Values := values;
   if not IsNaN(values[mqPower]) then
   begin
     if n = 0 then
@@ -475,10 +480,11 @@ begin
       accumEnergy := 0;
     end else
     begin
-      prevTime := FData[0, n-1].Time;
-      accumEnergy := FData[0, n-1].Values[mqEnergy];
+      prevTime := FData[0].Data[n-1].Time;
+      accumEnergy := FData[0].Data[n-1].Values[mqEnergy];
     end;
-    FData[0, n].Values[mqEnergy] := accumEnergy + values[mqPower] * (currTime - prevTime) * 24;  // Wh
+    FData[0].Data[n].Values[mqEnergy] := accumEnergy + values[mqPower] * (currTime - prevTime) * 24;  // Wh
+    FData[0].TotalEnergy := FData[0].Data[n].Values[mqEnergy];
     if timeNow > FNextBackupTime then
     begin
       SaveDataAs(FBackupFileName);
@@ -497,13 +503,19 @@ begin
   FChartSources[0].PointsNumber := n;
   Chart.Invalidate;
 
+  if (ChartListbox.FindSeriesIndex(TCustomChartSeries(Chart.Series[0])) = -1) then
+    ChartListbox.Populate;
+
   // Update grid
   if FGridDataIdx = 0 then
   begin
-    if Length(FData[0]) + Grid.FixedRows > Grid.RowCount then
-      Grid.RowCount := Length(FData[0]) + Grid.FixedRows;
+    if Length(FData[0].Data) + Grid.FixedRows > Grid.RowCount then
+      Grid.RowCount := Length(FData[0].Data) + Grid.FixedRows;
     Grid.Row := Grid.RowCount-1;
   end;
+
+  // Update total energy
+  UpdateTotalEnergyDisplay
 end;
 
 
@@ -524,6 +536,7 @@ begin
   FTimeUnits := tuMinutes;
   FBackupFileName := GetBackupDir + BACKUP_FILENAME;
 
+  // To avoid installation of the TLedNumber create it at runtime.
   FLedNumber := TLedNumber.Create(self);
   with FLedNumber do 
   begin
@@ -546,15 +559,17 @@ begin
   Notebook.PageIndex := 0;
   Chart.BottomAxis.Title.Caption := 'Time (' + TIMEUNITS[FTimeUnits] + ')';
 
-  Grid.AnchorSideTop.Control := FLedNumber;
+  lblMeasTitle.AnchorSideTop.Control := FLedNumber;
+  lblMeasTitle.AnchorSideTop.Side := asrBottom;
+
+  Grid.AnchorSideTop.Control := lblMeasTitle;
   Grid.AnchorSideTop.Side := asrBottom;
   Grid.RowHeights[0] := 2*Grid.DefaultRowHeight;
   
-//  TbExpand.Align := alRight;
-
   // FData[0] and FChartSources[0] are reserved for measurement data
   SetLength(FData, 1);
-  SetLength(FData[0], 0);
+  SetLength(FData[0].Data, 0);
+  FData[0].TotalEnergy := 0.0;
   SetLength(FChartSources, 1);
   FChartSources[0] := ChartSource;
 
@@ -570,6 +585,7 @@ begin
   SetDebugView(false);
   
   UpdateCaption;
+  UpdateTotalEnergyDisplay;
   UpdateStatusDisplay;
               
   ChartLiveView.ViewportSize := seLiveMinutes.Value * ONE_MINUTE;
@@ -579,7 +595,7 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  LeftPanel.Constraints.MinWidth := FLEDNumber.Left + FLEDNumber.Width;
+  LeftPanel.Constraints.MinWidth := pbStatusLED.Left + pbStatusLED.Width;
   StandardToolbar.Constraints.MinWidth := TbExit.Left + TbExit.Width + 8;
 end;
 
@@ -599,12 +615,12 @@ begin
       s := IntToStr(ARow);
       ts.Alignment := taRightJustify;
     end else
-    if ARow <= Length(FData[FGridDataIdx]) then begin
+    if ARow <= Length(FData[FGridDataIdx].Data) then begin
       case ACol of
-        1: s := FormatDateTime(TIMEFORMAT_LONG[FTimeUnits], FData[FGridDataIdx, ARow-1].Time);
-        2: s := EdiFloatToStr('0.00', FData[FGridDataIdx, ARow-1].Values[mqPower]);
-        3: s := EdiFloatToStr('0.000', FData[FGridDataIdx, ARow-1].Values[mqCurrent]);
-        4: s := EdiFloatToStr('0.000', FData[FGridDataIdx, ARow-1].Values[mqEnergy]);
+        1: s := FormatDateTime(TIMEFORMAT_LONG[FTimeUnits], FData[FGridDataIdx].Data[ARow-1].Time);
+        2: s := EdiFloatToStr('0.00', FData[FGridDataIdx].Data[ARow-1].Values[mqPower]);
+        3: s := EdiFloatToStr('0.000', FData[FGridDataIdx].Data[ARow-1].Values[mqCurrent]);
+        4: s := EdiFloatToStr('0.000', FData[FGridDataIdx].Data[ARow-1].Values[mqEnergy]);
       end;
     end;
     InflateRect(ARect, -constCellPadding, -constCellPadding);
@@ -626,7 +642,7 @@ var
   F: TextFile;
   s: String;
   sa: TStringArray;
-  data: TDataArray = nil;
+  data: TDataArray;
   quantName: String = '';
   quantUnits: String = '';
   timeUnits: TTimeUnits;
@@ -646,7 +662,8 @@ begin
   end;
   
   n := 0;
-  SetLength(data, BLOCK_SIZE);
+  data.Data := nil;
+  SetLength(data.Data, BLOCK_SIZE);
   
   AssignFile(F, AFileName);
   Reset(F);
@@ -681,58 +698,60 @@ begin
     end else
     begin
       // Initialize values
-      for mq in TMeasQuant do data[n].Values[mq] := NaN;
+      for mq in TMeasQuant do data.Data[n].Values[mq] := NaN;
       // Get time
-      data[n].Time := StrToFloat(sa[0], PointFormatSettings);
+      data.Data[n].Time := StrToFloat(sa[0], PointFormatSettings);
       if timeUnits <> tuDays then
-        data[n].Time := ConvertTimeUnits(data[n].Time, timeUnits, tuDays);
+        data.Data[n].Time := ConvertTimeUnits(data.Data[n].Time, timeUnits, tuDays);
       // Get value in 1st file column
       if mq1 <> mqNone then
-        data[n].Values[mq1] := StrToFloat(sa[1], PointFormatSettings);
+        data.Data[n].Values[mq1] := StrToFloat(sa[1], PointFormatSettings);
       // Get value in 2nd file column
       if mq2 <> mqNone then
-        data[n].Values[mq2] := StrToFloat(sa[2], PointFormatSettings);
+        data.Data[n].Values[mq2] := StrToFloat(sa[2], PointFormatSettings);
       // Calculate power value from current (if not contained in file)
-      if IsNaN(data[n].Values[mqPower]) and not IsNaN(data[n].Values[mqCurrent]) then
-        data[n].Values[mqPower] := Voltage * data[n].Values[mqCurrent];
+      if IsNaN(data.Data[n].Values[mqPower]) and not IsNaN(data.Data[n].Values[mqCurrent]) then
+        data.Data[n].Values[mqPower] := Voltage * data.Data[n].Values[mqCurrent];
       // Calculate current value from power (if not contained in file)
-      if IsNaN(data[n].Values[mqCurrent]) and not IsNaN(data[n].Values[mqPower]) then
-        data[n].Values[mqCurrent] := data[n].Values[mqPower] / Voltage;
+      if IsNaN(data.Data[n].Values[mqCurrent]) and not IsNaN(data.Data[n].Values[mqPower]) then
+        data.Data[n].Values[mqCurrent] := data.Data[n].Values[mqPower] / Voltage;
 
       // Calculate accumlated energy, in Wh
-      if not IsNaN(data[n].Values[mqPower]) then
+      if not IsNaN(data.Data[n].Values[mqPower]) then
       begin
         if n = 0 then
         begin
-          timeStep := data[n].Time;
+          timeStep := data.Data[n].Time;
           accumEnergy := 0;
         end else
         begin
-          timeStep := data[n].Time - data[n-1].Time;
-          accumEnergy := data[n-1].Values[mqEnergy];
+          timeStep := data.Data[n].Time - data.Data[n-1].Time;
+          accumEnergy := data.Data[n-1].Values[mqEnergy];
         end;
-        energy := data[n].Values[mqPower] * timeStep * 24;  // Wh
-        data[n].Values[mqEnergy] := accumEnergy + energy;
+        energy := data.Data[n].Values[mqPower] * timeStep * 24;  // Wh
+        data.Data[n].Values[mqEnergy] := accumEnergy + energy;
       end;
           
       // Increment counter of data values
       inc(n);      
       // Redim array if counter goes beyond current array limits.
       if n mod BLOCK_SIZE = 0 then
-        SetLength(data, n + BLOCK_SIZE);
+        SetLength(data.Data, n + BLOCK_SIZE);
     end;
   end;
   CloseFile(F);
   
   // Trim data array to size occupied.
-  SetLength(data, n);
+  SetLength(data.Data, n);
+  data.TotalEnergy := data.Data[High(data.Data)].Values[mqEnergy];
  
   // Fix time units
-  UpdateTimeAxis(data[n-1].Time);
-  
+  UpdateTimeAxis(data.Data[n-1].Time);
+
   // Move data found to global data array
-  SetLength(FData, Length(FData)+1);
-  FData[High(FData)] := data;
+  m := Length(FData);
+  SetLength(FData, m + 1);
+  FData[m] := data;
   
   // Add chart source for the loaded data
   m := Length(FChartSources);
@@ -753,6 +772,9 @@ begin
   FGridDataIdx := m;
   Grid.RowCount := n + grid.FixedRows;
   Grid.Invalidate;
+
+  // Update caption for total energy
+  UpdateTotalEnergyDisplay;
 end;
 
 
@@ -815,10 +837,10 @@ begin
     WriteLn(F);
     Write(F, '#', 'Time (days)', TAB, 'Power (W)', TAB, 'Current (A)');
     WriteLn(F);
-    for i:=0 to High(FData[0]) do begin
-      sT := Format('%.8f', [FData[0, i].Time], PointFormatSettings);
-      sP := Format('%.6f', [FData[0, i].Values[mqPower]], PointFormatSettings);
-      sI := Format('%.6f', [FData[0, i].Values[mqCurrent]], PointFormatSettings);
+    for i:=0 to High(FData[0].Data) do begin
+      sT := Format('%.8f', [FData[0].Data[i].Time], PointFormatSettings);
+      sP := Format('%.6f', [FData[0].Data[i].Values[mqPower]], PointFormatSettings);
+      sI := Format('%.6f', [FData[0].Data[i].Values[mqCurrent]], PointFormatSettings);
       WriteLn(F, sT, TAB, sP, TAB, sI);
     end;
   finally
@@ -919,6 +941,31 @@ begin
     Chart.BottomAxis.Marks.Style := smsLabel;
   end;
   Chart.BottomAxis.Title.Caption := 'Time (' + TIMEUNITS[FTimeUnits] + ')';
+end;
+
+
+procedure TMainForm.UpdateTotalEnergyDisplay;
+var
+  measTitle: String;
+  i: Integer;
+begin
+  if (FGridDataIdx > -1) and (Length(FData[FGridDataIdx].Data) > 0) then
+  begin
+    // Find title of selected measurement curve
+    measTitle := '';
+    for i := 0 to Chart.SeriesCount-1 do
+      if (Chart.Series[i] is TChartSeries) and (TChartSeries(Chart.Series[i]).Source.Tag = FGridDataIdx) then
+      begin
+        measTitle := TChartSeries(Chart.Series[i]).Title;
+        break;
+      end;
+    lblMeasTitle.Caption := measTitle;
+    lblTotalEnergy.Caption := Format('Accumulated energy: %.1f Ws', [FData[FGridDataIdx].TotalEnergy]);
+  end else
+  begin
+    lblMeasTitle.Caption := '';
+    lblTotalEnergy.Caption := '';
+  end;
 end;
 
 

@@ -48,11 +48,10 @@ object MainForm: TMainForm
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = LeftPanel
             AnchorSideRight.Side = asrBottom
-            AnchorSideBottom.Control = LeftPanel
-            AnchorSideBottom.Side = asrBottom
+            AnchorSideBottom.Control = lblTotalEnergy
             Left = 0
-            Height = 414
-            Top = 64
+            Height = 379
+            Top = 80
             Width = 257
             Anchors = [akTop, akLeft, akRight, akBottom]
             AutoFillColumns = True
@@ -108,6 +107,38 @@ object MainForm: TMainForm
             Width = 24
             BorderSpacing.Left = 4
             OnPaint = pbStatusLEDPaint
+          end
+          object lblTotalEnergy: TLabel
+            AnchorSideLeft.Control = Grid
+            AnchorSideTop.Control = Label1
+            AnchorSideRight.Control = Grid
+            AnchorSideRight.Side = asrBottom
+            AnchorSideBottom.Control = LeftPanel
+            AnchorSideBottom.Side = asrBottom
+            Left = 0
+            Height = 15
+            Top = 461
+            Width = 257
+            Anchors = [akLeft, akRight, akBottom]
+            BorderSpacing.Top = 2
+            BorderSpacing.Bottom = 2
+            Caption = 'lblTotalEnergy'
+            WordWrap = True
+          end
+          object lblMeasTitle: TLabel
+            AnchorSideLeft.Control = LeftPanel
+            AnchorSideRight.Control = LeftPanel
+            AnchorSideRight.Side = asrBottom
+            Left = 0
+            Height = 15
+            Top = 32
+            Width = 257
+            Anchors = [akTop, akLeft, akRight]
+            BorderSpacing.Top = 4
+            Caption = 'lblMeasTitle'
+            Font.Style = [fsBold]
+            ParentFont = False
+            WordWrap = True
           end
         end
         object LeftSplitter: TSplitter
