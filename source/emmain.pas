@@ -6,6 +6,7 @@ interface
 
 uses
   // FCL, LazUtils, LCL
+  LCLType, LCLIntf,
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
   ExtCtrls, Grids, Buttons, ActnList, StdCtrls, Spin, 
   // SynEdit
@@ -115,6 +116,7 @@ type
     procedure ChartListboxItemClick({%H-}ASender: TObject; AIndex: Integer);
     procedure ChartSourceGetChartDataItem(ASource: TUserDefinedChartSource;
       AIndex: Integer; var AItem: TChartDataItem);
+    procedure FormActivate(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -135,6 +137,7 @@ type
     FLedNumber: TLedNumber;
     FBackupFileName: String;
     FNextBackupTime: TDateTime;
+    FActivated: Boolean;
     procedure ExecuteMeasurement;
     function IsMeasuring: Boolean;
     procedure LoadData(const AFileName: String);
@@ -163,7 +166,7 @@ implementation
 {$R *.lfm}
 
 uses
-  StrUtils, Math, IniFiles, LclIntf,
+  StrUtils, Math, IniFiles,
   laz2_DOM, laz2_XMLRead,
   TAChartUtils,
   emUtils, emSetup, emXmlUtils;
@@ -519,6 +522,17 @@ begin
 end;
 
 
+procedure TMainForm.FormActivate(Sender: TObject);
+begin
+  if not FActivated then
+  begin
+    FActivated := true;
+    ReadFromIni;
+    Grid.RowHeights[0] := 2*Grid.DefaultRowHeight;
+  end;
+end;
+
+
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: boolean);
 begin
   if CanClose then
@@ -564,8 +578,7 @@ begin
 
   Grid.AnchorSideTop.Control := lblMeasTitle;
   Grid.AnchorSideTop.Side := asrBottom;
-  Grid.RowHeights[0] := 2*Grid.DefaultRowHeight;
-  
+
   // FData[0] and FChartSources[0] are reserved for measurement data
   SetLength(FData, 1);
   SetLength(FData[0].Data, 0);
@@ -573,7 +586,6 @@ begin
   SetLength(FChartSources, 1);
   FChartSources[0] := ChartSource;
 
-  ReadFromIni;
   if not Edi_IsAvail(false) then
   begin     
     if (DeviceParams.IPAddress = '') then
@@ -794,9 +806,27 @@ end;
 procedure TMainForm.ReadFromIni;
 var
   ini: TCustomIniFile;
+  L, T, W, H: Integer;
+  R: TRect;
 begin
   ini := CreateIni;
   try
+    T := ini.ReadInteger('MainForm', 'Top', Top);
+    L := ini.ReadInteger('MainForm', 'Left', Left);
+    W := ini.ReadInteger('MainForm', 'Width', Width);
+    H := ini.ReadInteger('MainForm', 'Height', Height);
+    R := Screen.WorkAreaRect;
+    if W > R.Width then W := R.Width;
+    if H > R.Height then H := R.Height;
+    if L < R.Left then L := R.Left;
+    if T < R.Top then T := R.Top;
+    if L + W > R.Right then L := R.Right - W - GetSystemMetrics(SM_CXSIZEFRAME);
+    if T + H > R.Bottom then T := R.Bottom - H - GetSystemMetrics(SM_CYCAPTION) - GetSystemMetrics(SM_CYSIZEFRAME);
+    SetBounds(L, T, W, H);
+    WindowState := wsNormal;
+    Application.ProcessMessages;
+    WindowState := TWindowState(ini.ReadInteger('MainForm', 'WindowState', 0));
+
     with NetworkParams do begin
       DeviceAddress := ini.ReadString('NetworkParams', 'IPAddress', DeviceAddress);
       NetworkAddress := ini.ReadString('NetworkParams', 'NetworkAddress', NetworkAddress);
@@ -960,7 +990,7 @@ begin
         break;
       end;
     lblMeasTitle.Caption := measTitle;
-    lblTotalEnergy.Caption := Format('Accumulated energy: %.1f Ws', [FData[FGridDataIdx].TotalEnergy]);
+    lblTotalEnergy.Caption := Format('Accumulated energy: %.1f Wh', [FData[FGridDataIdx].TotalEnergy]);
   end else
   begin
     lblMeasTitle.Caption := '';
@@ -990,6 +1020,12 @@ var
 begin
   ini := CreateIni;
   try
+    ini.WriteInteger('MainForm', 'Top', Top);
+    ini.WriteInteger('MainForm', 'Left', Left);
+    ini.WriteInteger('MainForm', 'Width', Width);
+    ini.WriteInteger('MainForm', 'Height', Height);
+    ini.WriteInteger('MainForm', 'WindowState', Integer(WindowState));
+
     with NetworkParams do begin
       ini.WriteString('NetworkParams', 'DHCPServer', NetworkAddress);
       ini.WriteString('NetworkParams', 'SubnetMask', SubnetMask);
